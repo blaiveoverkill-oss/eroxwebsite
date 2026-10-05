@@ -302,15 +302,18 @@ html[dir="rtl"] .url { text-align: right; }
     align-items: start;
   }
   .topbar { grid-area: top; margin-bottom: 56px; position: relative; z-index: 20; }
+
+  /* === FIX: sticky instead of fixed, spanning the full left column === */
   .intro {
     grid-area: intro;
-    position: fixed;
+    grid-row: 2 / 6;
+    position: sticky;
     top: 56px;
-    width: min(340px, calc((100vw - 96px - 88px) * 0.34));
     margin-bottom: 0;
     align-self: start;
     z-index: 2;
   }
+
   .links { grid-area: links; grid-column: 2; }
   .videos { grid-area: videos; grid-column: 2; margin-top: 84px; }
   .playlists { grid-area: playlists; }
@@ -638,30 +641,30 @@ html[dir="rtl"] .url { text-align: right; }
       <a class="playlists-more" href="https://www.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/playlists"
          target="_blank" rel="noopener noreferrer" data-i18n="playlists_more">View all</a>
     </div>
-    <div class="playlists-grid">
-      <a class="playlist-card" href="https://youtube.com/playlist?list=PLXBYaKrGn-MQ"
+    <div class="playlists-grid" id="playlistsGrid">
+      <a class="playlist-card" href="https://www.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/playlists"
          target="_blank" rel="noopener noreferrer">
         <span class="playlist-copy">
           <span class="playlist-name" data-i18n="playlist_1_title">YouTube playlists</span>
           <span class="playlist-desc" data-i18n="playlist_1_desc">Browse the channel's organized video collections.</span>
         </span>
-        <span class="playlist-arrow" aria-hidden="true">→</span>
+        <span class="playlist-arrow" aria-hidden="true">&#8594;</span>
       </a>
-      <a class="playlist-card" href="https://youtube.com/playlist?list=PLI-jPcEHcEao"
+      <a class="playlist-card" href="https://www.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/playlists"
          target="_blank" rel="noopener noreferrer">
         <span class="playlist-copy">
           <span class="playlist-name" data-i18n="playlist_2_title">Gaming series</span>
           <span class="playlist-desc" data-i18n="playlist_2_desc">Find related gameplay and full playthroughs together.</span>
         </span>
-        <span class="playlist-arrow" aria-hidden="true">→</span>
+        <span class="playlist-arrow" aria-hidden="true">&#8594;</span>
       </a>
-      <a class="playlist-card" href="https://youtube.com/playlist?list=PLD-FRzVfHjBM"
+      <a class="playlist-card" href="https://www.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/playlists"
          target="_blank" rel="noopener noreferrer">
         <span class="playlist-copy">
           <span class="playlist-name" data-i18n="playlist_3_title">All collections</span>
           <span class="playlist-desc" data-i18n="playlist_3_desc">Open the full playlist library on YouTube.</span>
         </span>
-        <span class="playlist-arrow" aria-hidden="true">→</span>
+        <span class="playlist-arrow" aria-hidden="true">&#8594;</span>
       </a>
     </div>
   </section>
@@ -726,7 +729,8 @@ var T = {
     playlist_2_title: "Gaming series",
     playlist_2_desc: "Find related gameplay and full playthroughs together.",
     playlist_3_title: "All collections",
-    playlist_3_desc: "Open the full playlist library on YouTube",
+    playlist_3_desc: "Open the full playlist library on YouTube.",
+    playlist_generic: "Open the playlist on YouTube",
     colophon: "Updated whenever a new run finishes.",
     langLabel: "\u0639",
     langAria: "Switch to Arabic",
@@ -781,7 +785,8 @@ var T = {
     playlist_2_title: "سلاسل الألعاب",
     playlist_2_desc: "اعثر على مقاطع اللعب والجلسات الكاملة المرتبطة.",
     playlist_3_title: "كل المجموعات",
-    playlist_3_desc: "افتح مكتبة قوائم التشغيل كاملة على يوتيوب",
+    playlist_3_desc: "افتح مكتبة قوائم التشغيل كاملة على يوتيوب.",
+    playlist_generic: "افتح قائمة التشغيل على يوتيوب",
     colophon: "\u064a\u064f\u062d\u062f\u064e\u0651\u062b \u0639\u0646\u062f \u0627\u0646\u062a\u0647\u0627\u0621 \u0643\u0644 \u062c\u0648\u0644\u0629 \u062c\u062f\u064a\u062f\u0629.",
     langLabel: "EN",
     langAria: "\u0627\u0644\u062a\u0628\u062f\u064a\u0644 \u0625\u0644\u0649 \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629",
@@ -834,6 +839,7 @@ function applyLang(l) {
   document.getElementById('fluidToggle').setAttribute('aria-label', t.fluidAria);
   musicBtn.setAttribute('aria-label', audio.paused ? t.musicPlay : t.musicPause);
   if (window.renderVideos) window.renderVideos();
+  if (window.renderPlaylists) window.renderPlaylists();
 }
 
 function applyThemeColor() {
@@ -1253,6 +1259,142 @@ document.addEventListener('toggle', function (e) {
       state = 'error';
       window.renderVideos();
     });
+})();
+
+/* ==========================================================================
+   YouTube playlists — scraped via CORS proxies, static fallback stays if it fails
+   ========================================================================== */
+(function () {
+  var CHANNEL_ID = 'UCoDs7EzXlKTj_py9_Glq9ZQ';
+  var PLAYLISTS_URL = 'https://www.youtube.com/channel/' + CHANNEL_ID + '/playlists';
+  var grid = document.getElementById('playlistsGrid');
+  if (!grid) return;
+
+  var MAX = 3;
+  var playlists = [];
+  var ready = false;
+
+  function fetchTimeout(url, ms, asJson) {
+    return new Promise(function (resolve, reject) {
+      var controller = null, timer = null;
+      try {
+        controller = new AbortController();
+        timer = setTimeout(function () {
+          try { controller.abort(); } catch (e) {}
+          reject(new Error('timeout'));
+        }, ms);
+      } catch (e) {}
+      var opts = { credentials: 'omit', mode: 'cors' };
+      if (controller) opts.signal = controller.signal;
+      fetch(url, opts).then(function (r) {
+        if (timer) clearTimeout(timer);
+        if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
+        resolve(asJson ? r.json() : r.text());
+      }, function (err) {
+        if (timer) clearTimeout(timer);
+        reject(err);
+      });
+    });
+  }
+
+  function unesc(s) {
+    try { return JSON.parse('"' + s + '"'); } catch (e) { return s; }
+  }
+
+  function titleNear(html, from) {
+    var chunk = html.slice(from, from + 3000);
+    var m = chunk.match(/"title":\{"content":"((?:[^"\\]|\\.)*)"/);
+    if (!m) m = chunk.match(/"title":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/);
+    if (!m) m = chunk.match(/"title":\{"simpleText":"((?:[^"\\]|\\.)*)"/);
+    return m ? unesc(m[1]).trim() : '';
+  }
+
+  function parsePlaylists(html) {
+    if (!html || typeof html !== 'string') return [];
+    var out = [], seen = {}, m;
+    var re = /"playlistId":"(PL[A-Za-z0-9_-]{10,})"/g;
+    while ((m = re.exec(html)) !== null) {
+      var id = m[1];
+      if (seen[id]) continue;
+      var title = titleNear(html, m.index);
+      if (!title) continue;
+      seen[id] = 1;
+      out.push({ id: id, title: title });
+      if (out.length >= MAX) break;
+    }
+    return out;
+  }
+
+  var SOURCES = [
+    function () {
+      var u = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(PLAYLISTS_URL);
+      return fetchTimeout(u, 9000, false).then(parsePlaylists);
+    },
+    function () {
+      var u = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(PLAYLISTS_URL);
+      return fetchTimeout(u, 9000, false).then(parsePlaylists);
+    },
+    function () {
+      var u = 'https://api.allorigins.win/get?url=' + encodeURIComponent(PLAYLISTS_URL);
+      return fetchTimeout(u, 9000, true).then(function (d) {
+        return parsePlaylists(d && d.contents);
+      });
+    },
+    function () {
+      var u = 'https://corsproxy.io/?' + encodeURIComponent(PLAYLISTS_URL);
+      return fetchTimeout(u, 9000, false).then(parsePlaylists);
+    }
+  ];
+
+  function tryAll() {
+    var i = 0;
+    function next() {
+      if (i >= SOURCES.length) return Promise.reject(new Error('all sources failed'));
+      var fn = SOURCES[i++];
+      return fn().then(function (list) {
+        if (!list || !list.length) throw new Error('empty');
+        return list;
+      }).catch(function () { return next(); });
+    }
+    return next();
+  }
+
+  function mk(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  window.renderPlaylists = function () {
+    if (!ready || !playlists.length) return;   // keep the static fallback markup
+    grid.innerHTML = '';
+    var t = T[currentLang()];
+    for (var i = 0; i < playlists.length; i++) {
+      var p = playlists[i];
+      var a = mk('a', 'playlist-card');
+      a.href = 'https://www.youtube.com/playlist?list=' + p.id;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+
+      var copy = mk('span', 'playlist-copy');
+      copy.appendChild(mk('span', 'playlist-name', p.title));
+      copy.appendChild(mk('span', 'playlist-desc', t.playlist_generic));
+
+      var arrow = mk('span', 'playlist-arrow', '\u2192');
+      arrow.setAttribute('aria-hidden', 'true');
+
+      a.appendChild(copy);
+      a.appendChild(arrow);
+      grid.appendChild(a);
+    }
+  };
+
+  tryAll().then(function (list) {
+    playlists = list;
+    ready = true;
+    window.renderPlaylists();
+  }).catch(function () { /* static fallback stays visible */ });
 })();
 
 applyLang(currentLang());
