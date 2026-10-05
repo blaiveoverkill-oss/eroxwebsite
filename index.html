@@ -998,7 +998,7 @@ document.addEventListener('toggle', function (e) {
 })();
 
 /* ==========================================================================
-   Latest YouTube videos — rss2json primary + 3 XML proxies as fallback
+   Latest YouTube videos — rss2json primary + XML proxies as fallback
    ========================================================================== */
 (function () {
   var CHANNEL_ID = 'UCoDs7EzXlKTj_py9_Glq9ZQ';
@@ -1230,10 +1230,8 @@ document.addEventListener('toggle', function (e) {
 })();
 
 /* ==========================================================================
-   Playlists — three fixed playlists. Thumbnail comes straight from the
-   first video ID (always available, no network needed). Title is fetched
-   from the YouTube playlist page via a CORS proxy and falls back to a
-   sensible default if the fetch fails.
+   Playlists — thumbnails from the first video ID (instant), titles fetched
+   asynchronously from YouTube via oEmbed → noembed → page scrape.
    ========================================================================== */
 (function () {
   var grid = document.getElementById('playlistsGrid');
@@ -1244,18 +1242,21 @@ document.addEventListener('toggle', function (e) {
       videoId: 'hIRqQ-UG0ZU',
       listId: 'PLXBYaKrGn-MQ',
       url: 'https://www.youtube.com/watch?v=hIRqQ-UG0ZU&list=PLXBYaKrGn-MQ',
+      title: null,
       fallbackTitle: 'YouTube playlists'
     },
     {
       videoId: 'TmrEuNjVpyw',
       listId: 'PLI-jPcEHcEao',
       url: 'https://www.youtube.com/watch?v=TmrEuNjVpyw&list=PLI-jPcEHcEao',
+      title: null,
       fallbackTitle: 'Gaming series'
     },
     {
       videoId: 'ud7gb8baqbw',
       listId: 'PLD-FRzVfHjBM',
       url: 'https://www.youtube.com/watch?v=ud7gb8baqbw&list=PLD-FRzVfHjBM&pp=0gcJCbwFa94AFGB0',
+      title: null,
       fallbackTitle: 'All collections'
     }
   ];
@@ -1269,6 +1270,19 @@ document.addEventListener('toggle', function (e) {
     if (cls) n.className = cls;
     if (text != null) n.textContent = text;
     return n;
+  }
+
+  function decodeEntities(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#0*39;/g, "'")
+      .replace(/&#x0*27;/gi, "'")
+      .replace(/&#x2F;/gi, '/')
+      .replace(/&nbsp;/g, ' ');
   }
 
   function render() {
@@ -1304,60 +1318,113 @@ document.addEventListener('toggle', function (e) {
   }
 
   window.renderPlaylists = render;
-
-  // Render immediately with fallback titles + reliable thumbnails.
   render();
 
-  // Now try to enrich with the real playlist title from YouTube (async).
-  var PROXIES = [
-    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
-    function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
-  ];
-
-  function fetchTitle(listId, cb) {
-    var pageUrl = 'https://www.youtube.com/playlist?list=' + listId;
-    var idx = 0;
-    function tryNext() {
-      if (idx >= PROXIES.length) { cb(null); return; }
-      var proxy = PROXIES[idx++];
-      var controller = null;
-      var timer = null;
+  function fetchJson(url, ms) {
+    return new Promise(function (resolve, reject) {
+      var controller = null, timer = null;
       try {
         controller = new AbortController();
         timer = setTimeout(function () {
           try { controller.abort(); } catch (e) {}
-        }, 8000);
+          reject(new Error('timeout'));
+        }, ms);
       } catch (e) {}
       var opts = { credentials: 'omit', mode: 'cors' };
       if (controller) opts.signal = controller.signal;
-
-      fetch(proxy(pageUrl), opts).then(function (r) {
+      fetch(url, opts).then(function (r) {
         if (timer) clearTimeout(timer);
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
-      }).then(function (html) {
-        var m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-        if (!m) { tryNext(); return; }
-        var title = m[1].replace(/\s*-\s*YouTube\s*$/i, '').trim();
-        if (!title) { tryNext(); return; }
-        cb(title);
-      }).catch(function () {
+        if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
+        resolve(r.json());
+      }, function (err) {
         if (timer) clearTimeout(timer);
-        tryNext();
+        reject(err);
       });
-    }
-    tryNext();
+    });
   }
 
-  // Fetch all titles in parallel; re-render on any success.
-  var remaining = PLAYLISTS.length;
+  function fetchText(url, ms) {
+    return new Promise(function (resolve, reject) {
+      var controller = null, timer = null;
+      try {
+        controller = new AbortController();
+        timer = setTimeout(function () {
+          try { controller.abort(); } catch (e) {}
+          reject(new Error('timeout'));
+        }, ms);
+      } catch (e) {}
+      var opts = { credentials: 'omit', mode: 'cors' };
+      if (controller) opts.signal = controller.signal;
+      fetch(url, opts).then(function (r) {
+        if (timer) clearTimeout(timer);
+        if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
+        resolve(r.text());
+      }, function (err) {
+        if (timer) clearTimeout(timer);
+        reject(err);
+      });
+    });
+  }
+
+  function tryOembed(listId) {
+    var target = 'https://www.youtube.com/playlist?list=' + listId;
+    var u = 'https://www.youtube.com/oembed?url=' + encodeURIComponent(target) + '&format=json';
+    return fetchJson(u, 7000).then(function (d) {
+      if (d && d.title) return d.title;
+      throw new Error('no title');
+    });
+  }
+
+  function tryNoembed(listId) {
+    var target = 'https://www.youtube.com/playlist?list=' + listId;
+    var u = 'https://noembed.com/embed?url=' + encodeURIComponent(target);
+    return fetchJson(u, 7000).then(function (d) {
+      if (d && d.title) return d.title;
+      throw new Error('no title');
+    });
+  }
+
+  function tryPageViaProxy(listId, proxyFn) {
+    var pageUrl = 'https://www.youtube.com/playlist?list=' + listId + '&hl=en&persist_hl=1';
+    return fetchText(proxyFn(pageUrl), 9000).then(function (html) {
+      if (!html) throw new Error('empty');
+      var m =
+        html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
+        html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:title["']/i) ||
+        html.match(/<meta\s+itemprop=["']name["']\s+content=["']([^"']+)["']/i) ||
+        html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      if (!m) throw new Error('no title tag');
+      var t = decodeEntities(m[1])
+        .replace(/\s*-\s*YouTube\s*$/i, '')
+        .replace(/\s*\|\s*YouTube\s*$/i, '')
+        .trim();
+      if (!t || t.length > 200 || /^youtube$/i.test(t)) throw new Error('bad title');
+      return t;
+    });
+  }
+
+  function fetchTitle(p) {
+    return tryOembed(p.listId)
+      .catch(function () { return tryNoembed(p.listId); })
+      .catch(function () {
+        return tryPageViaProxy(p.listId, function (u) {
+          return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u);
+        });
+      })
+      .catch(function () {
+        return tryPageViaProxy(p.listId, function (u) {
+          return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u);
+        });
+      })
+      .catch(function () { return null; });
+  }
+
   PLAYLISTS.forEach(function (p) {
-    fetchTitle(p.listId, function (title) {
+    fetchTitle(p).then(function (title) {
       if (title) {
         p.title = title;
         render();
       }
-      remaining--;
     });
   });
 })();
