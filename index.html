@@ -12,9 +12,12 @@
 <meta name="theme-color" content="#faf8ff" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#0f0d17" media="(prefers-color-scheme: dark)" />
 <title>Erox Vilumex</title>
+<link rel="preconnect" href="https://i.ytimg.com" />
+<link rel="preconnect" href="https://api.rss2json.com" crossorigin />
 
 <script>
 (function () {
+  document.documentElement.classList.add('js');
   try {
     var s = localStorage.getItem('theme');
     var d = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -34,6 +37,8 @@
   --line: #e8e2f5; --accent: #7c3aed;
   --accent-soft: rgba(124, 58, 237, 0.08);
   --accent-glow: rgba(124, 58, 237, 0.22);
+  --glass: rgba(255, 255, 255, 0.55);
+  --panel: rgba(255, 255, 255, 0.92);
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Noto Naskh Arabic", "Geeza Pro", "Times New Roman", serif;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans Arabic", "Geeza Pro", Tahoma, sans-serif;
 }
@@ -43,6 +48,8 @@
   --line: #241f33; --accent: #c4a5ff;
   --accent-soft: rgba(196, 165, 255, 0.1);
   --accent-glow: rgba(124, 58, 237, 0.4);
+  --glass: rgba(15, 13, 23, 0.5);
+  --panel: rgba(22, 19, 34, 0.94);
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -63,7 +70,7 @@ a { color: inherit; }
 .icon-btn {
   width: 34px; height: 34px; display: grid; place-items: center; padding: 0;
   border: 1px solid var(--line); border-radius: 50%;
-  background-color: transparent;
+  background-color: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   color: var(--muted); cursor: pointer; -webkit-tap-highlight-color: transparent;
   font-family: var(--sans); font-size: 0.72rem; font-weight: 600;
   transition: color 0.22s ease, border-color 0.22s ease, background-color 0.22s ease,
@@ -74,9 +81,7 @@ a { color: inherit; }
 .icon-moon { display: none; }
 [data-theme="dark"] .icon-sun { display: none; }
 [data-theme="dark"] .icon-moon { display: block; }
-.music-btn .icon-pause { display: none; }
-.music-btn.playing .icon-play { display: none; }
-.music-btn.playing .icon-pause { display: block; }
+.music-btn.playing .icon-note { display: none; }
 
 .icon-btn:hover,
 .icon-btn:focus-visible,
@@ -245,7 +250,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px soli
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .link { animation: rise 0.5s ease both; animation-delay: calc(var(--i, 0) * 45ms + 120ms); }
 
-#fluid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }
+#fluid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; opacity: 0; transition: opacity 1.4s ease; }
+#fluid.ready { opacity: 1; }
 .fluid-off #fluid { display: none; }
 
 .item { border-bottom: 1px solid var(--line); --ind: 66px; }
@@ -342,6 +348,133 @@ html[dir="rtl"] .url { text-align: right; }
 @media (min-width: 1400px) {
   .wrap { max-width: 1180px; column-gap: 112px; grid-template-columns: 380px minmax(0, 1fr); }
 }
+
+/* ---- polish: video overlays, hover depth, reveal, panel motion ---- */
+.video-thumb, .playlist-thumb { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.3s ease; }
+.video-card:hover .video-thumb, .playlist-card:hover .playlist-thumb,
+.video-card:focus-visible .video-thumb, .playlist-card:focus-visible .playlist-thumb {
+  border-color: var(--accent); box-shadow: 0 14px 30px -16px var(--accent-glow);
+}
+.video-card:active .video-thumb, .playlist-card:active .playlist-thumb { transform: scale(0.98); }
+.video-play {
+  position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.32), transparent 55%);
+  opacity: 0; transition: opacity 0.25s ease;
+}
+.video-play > span {
+  width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  transform: scale(0.85); transition: transform 0.25s ease;
+}
+.video-play svg { width: 20px; height: 20px; fill: #fff; }
+.video-card:hover .video-play, .video-card:focus-visible .video-play { opacity: 1; }
+.video-card:hover .video-play > span, .video-card:focus-visible .video-play > span { transform: scale(1); }
+@media (hover: none) {
+  .video-play { opacity: 1; background: none; }
+  .video-play > span { width: 38px; height: 38px; transform: none; }
+}
+.video-new {
+  position: absolute; top: 8px; left: 8px; padding: 2px 9px; border-radius: 999px;
+  background: var(--accent); color: #fff; pointer-events: none;
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+}
+[data-theme="dark"] .video-new { color: #1a1523; }
+html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
+.videos-grid > .videos-fallback { grid-column: 1 / -1; }
+
+.item[open] .panel { animation: panelIn 0.3s ease both; }
+@keyframes panelIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.js .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.js .reveal.in { opacity: 1; transform: none; }
+
+/* ---- mobile: swipeable carousels instead of long stacked cards ---- */
+@media (max-width: 639.98px) {
+  .videos-grid, .playlists-grid {
+    display: flex; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    margin-inline: -24px; padding: 2px 24px 8px; scroll-padding-inline: 24px;
+  }
+  .videos-grid::-webkit-scrollbar, .playlists-grid::-webkit-scrollbar { display: none; }
+  .video-card, .playlist-card { flex: 0 0 78%; scroll-snap-align: start; }
+  .videos-grid > .videos-fallback { flex: 1 0 100%; }
+}
+
+/* ---- touch devices: bigger tap targets ---- */
+@media (pointer: coarse) {
+  .icon-btn { width: 42px; height: 42px; }
+  .socials { gap: 4px; }
+  .socials a { width: 42px; height: 42px; }
+  .socials svg { width: 19px; height: 19px; }
+  .btn { min-height: 44px; }
+}
+
+/* ---- music dropdown + player ---- */
+.topbar { position: relative; z-index: 20; }
+.music-wrap { position: relative; }
+.eq { display: none; align-items: flex-end; justify-content: center; gap: 2px; width: 15px; height: 13px; }
+.eq i { display: block; width: 3px; height: 13px; border-radius: 1px; background: currentColor; transform-origin: bottom; animation: eq 0.9s ease-in-out infinite; }
+.eq i:nth-child(2) { animation-delay: -0.35s; }
+.eq i:nth-child(3) { animation-delay: -0.7s; }
+@keyframes eq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.music-btn.playing .eq, .track.playing .eq { display: flex; }
+
+.music-panel {
+  position: absolute; top: calc(100% + 10px); inset-inline-start: 0; z-index: 30;
+  width: min(340px, calc(100vw - 48px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  padding: 16px 14px 14px; border: 1px solid var(--line); border-radius: 18px;
+  background: var(--panel); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 24px 50px -22px rgba(30, 10, 70, 0.45);
+}
+.music-panel:not([hidden]) { animation: panelIn 0.22s ease both; }
+.music-title { margin: 0 4px; font-family: var(--serif); font-size: 1.02rem; letter-spacing: -0.01em; }
+.music-msg { margin: 10px 4px 2px; font-size: 0.82rem; color: var(--muted); }
+.track-list { list-style: none; margin: 10px -6px 0; padding: 0; max-height: min(36vh, 240px); overflow-y: auto; overscroll-behavior: contain; }
+.track {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--text); font: 500 0.88rem var(--sans); text-align: start; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: background-color 0.2s ease, color 0.2s ease;
+}
+.track:hover, .track:focus-visible { background: var(--accent-soft); }
+.track.active { color: var(--accent); }
+.track.bad { opacity: 0.45; }
+.track-n { flex: none; width: 15px; text-align: center; font-size: 0.74rem; color: var(--faint); font-variant-numeric: tabular-nums; }
+.track.playing .track-n { display: none; }
+.track-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.player { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.now { margin: 0 4px 8px; font-size: 0.88rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seek-row, .ctrl-row { display: flex; align-items: center; direction: ltr; }
+.seek-row { gap: 10px; font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seek-row span { flex: none; min-width: 34px; text-align: center; }
+.ctrl-row { justify-content: space-between; gap: 4px; margin-top: 6px; }
+.ctrl {
+  flex: none; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; color: var(--text); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.ctrl svg { width: 22px; height: 22px; fill: currentColor; }
+.ctrl:hover { background: var(--accent-soft); }
+.ctrl:active { transform: scale(0.92); }
+.ctrl.on { color: var(--accent); }
+.ctrl.main { width: 46px; height: 46px; background: var(--accent); color: #fff; }
+[data-theme="dark"] .ctrl.main { color: #1a1523; }
+.ctrl.main:hover { background: var(--accent); filter: brightness(1.08); }
+.player .i-pause { display: none; }
+.player.is-playing .i-play { display: none; }
+.player.is-playing .i-pause { display: block; }
+
+.rng { -webkit-appearance: none; appearance: none; flex: 1 1 auto; min-width: 0; height: 18px; margin: 0; background: transparent; cursor: pointer; --p: 0%; }
+.rng::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--accent) var(--p), var(--line) var(--p)); }
+.rng::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--accent) var(--p), var(--line) var(--p)); }
+.rng::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; margin-top: -5px; border: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.rng::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.vol { flex: none; width: 72px; }
+@media (pointer: coarse) {
+  .vol { display: none; }
+  .ctrl-row { justify-content: center; gap: 12px; }
+  .track { padding: 12px 8px; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
@@ -370,15 +503,39 @@ html[dir="rtl"] .url { text-align: right; }
 <main class="wrap">
 
   <div class="topbar">
-    <button class="icon-btn music-btn" id="musicToggle" type="button"
-            aria-label="Play background music" onclick="doMusic()">
-      <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M8 5.5v13l11-6.5-11-6.5Z" />
-      </svg>
-      <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M7 5h3v14H7zM14 5h3v14h-3z" />
-      </svg>
-    </button>
+    <div class="music-wrap">
+      <button class="icon-btn music-btn" id="musicToggle" type="button"
+              aria-haspopup="true" aria-expanded="false" aria-controls="musicPanel" aria-label="Music">
+        <svg class="icon-note" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+        </svg>
+        <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
+
+      <div class="music-panel" id="musicPanel" hidden>
+        <p class="music-title" data-i18n="music_title">Erox recommends these bangers</p>
+        <p class="music-msg" id="musicMsg" hidden></p>
+        <ul class="track-list" id="trackList"></ul>
+        <div class="player" id="player" hidden>
+          <div class="now" id="nowPlaying"></div>
+          <div class="seek-row">
+            <span id="tCur">0:00</span>
+            <input class="rng" id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek" />
+            <span id="tDur">0:00</span>
+          </div>
+          <div class="ctrl-row">
+            <button class="ctrl" id="bShuffle" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
+            <button class="ctrl" id="bPrev" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+            <button class="ctrl main" id="bPlay" type="button">
+              <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <button class="ctrl" id="bNext" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+            <input class="rng vol" id="vol" type="range" min="0" max="100" value="80" aria-label="Volume" />
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="controls">
       <button class="icon-btn fluid-btn" id="fluidToggle" type="button"
@@ -413,7 +570,7 @@ html[dir="rtl"] .url { text-align: right; }
     <div class="avatar-wrap">
       <img class="avatar" alt="Erox Vilumex" width="84" height="84"
            src="avatar.jpg"
-           onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20200%20200%22%3E%3Crect%20width=%22200%22%20height=%22200%22%20fill=%22%233d2e6b%22/%3E%3Ctext%20x=%22100%22%20y=%22122%22%20font-family=%22Georgia,serif%22%20font-size=%2268%22%20fill=%22%23e0d4ff%22%20text-anchor=%22middle%22%3EEV%3C/text%3E%3C/svg%3E';" />
+           onerror="var e=+this.dataset.e||0,x=['avatar.png','avatar.webp','avatar.jpeg'];if(e<x.length){this.dataset.e=e+1;this.src=x[e];return;}this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20200%20200%22%3E%3Crect%20width=%22200%22%20height=%22200%22%20fill=%22%233d2e6b%22/%3E%3Ctext%20x=%22100%22%20y=%22122%22%20font-family=%22Georgia,serif%22%20font-size=%2268%22%20fill=%22%23e0d4ff%22%20text-anchor=%22middle%22%3EEV%3C/text%3E%3C/svg%3E';" />
     </div>
 
     <h1 class="name">Erox Vilumex</h1>
@@ -425,13 +582,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:0">
+        <span class="link" style="--i:0">
       <span class="thumb thumb-yt"><svg viewBox="0 0 24 24"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19.1 5 12 5 12 5s-7.1 0-8.9.4A3 3 0 0 0 1 7.5 31 31 0 0 0 .6 12 31 31 0 0 0 1 16.5a3 3 0 0 0 2.1 2.1C4.9 19 12 19 12 19s7.1 0 8.9-.4a3 3 0 0 0 2.1-2.1A31 31 0 0 0 23.4 12 31 31 0 0 0 23 7.5ZM9.8 15.2V8.8l5.4 3.2-5.4 3.2Z"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="yt_title">YouTube &mdash; all videos</span>
-        <span class="link-desc" data-i18n="yt_desc">Gameplay videos with funny commentary. 98 videos and counting.</span>
+        <span class="link-desc" data-i18n="yt_desc">Gameplay videos with funny commentary, plus full playthroughs.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/videos</p>
@@ -444,13 +601,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:1">
+        <span class="link" style="--i:1">
       <span class="thumb thumb-steam"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-9.96 9.15l5.36 2.22a2.84 2.84 0 0 1 1.62-.5h.15l2.38-3.45v-.05a3.79 3.79 0 1 1 3.79 3.79h-.09l-3.4 2.43v.11a2.85 2.85 0 1 1-5.66-.71L2.4 13.63A10 10 0 1 0 12 2Zm-4.55 14.33 1.23.51a2.14 2.14 0 1 0 1.26-2.79l1.27.53a1.57 1.57 0 1 1-1.2 2.9 1.57 1.57 0 0 1-.83-.83l-1.73-.32Zm8.28-3.84a2.53 2.53 0 1 0 0-5.05 2.53 2.53 0 0 0 0 5.05Zm0-.79a1.74 1.74 0 1 1 0-3.48 1.74 1.74 0 0 1 0 3.48Z"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="steam_title">Steam profile</span>
         <span class="link-desc" data-i18n="steam_desc">eroxvilumex &mdash; send a friend request and join the family sharing group.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">steamcommunity.com/id/eroxvilumex</p>
@@ -463,13 +620,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:2">
+        <span class="link" style="--i:2">
       <span class="thumb thumb-tg"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.64 6.8-1.57 7.41c-.12.53-.43.66-.87.41l-2.41-1.78-1.16 1.12c-.13.13-.24.24-.49.24l.17-2.47 4.5-4.06c.2-.17-.04-.27-.3-.1l-5.56 3.5-2.39-.75c-.52-.16-.53-.52.11-.77l9.34-3.6c.43-.16.81.1.63.85Z"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="tg_title">Telegram channel</span>
         <span class="link-desc" data-i18n="tg_desc">Updates and announcements from the Erox channel.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">t.me/EroxFanClub</p>
@@ -482,13 +639,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:3">
+        <span class="link" style="--i:3">
       <span class="thumb thumb-discord"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-discord"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="discord_title">Discord</span>
         <span class="link-desc" data-i18n="discord_desc">Join the Discord server and chat with the community.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">discord.gg/SJt67SY9df</p>
@@ -501,13 +658,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:4">
+        <span class="link" style="--i:4">
       <span class="thumb thumb-fb"><svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.5-3.9 3.78-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0 0 22 12Z"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="fb_title">Facebook</span>
         <span class="link-desc" data-i18n="fb_desc">@EroxVilumexV &mdash; posts, updates, and community.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">facebook.com/EroxVilumexV</p>
@@ -520,13 +677,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:5">
+        <span class="link" style="--i:5">
       <span class="thumb thumb-kick"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-kick"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="kick_title">Kick</span>
         <span class="link-desc" data-i18n="kick_desc">erox-vilumex &mdash; live streams and full sessions on Kick.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">kick.com/erox-vilumex</p>
@@ -539,13 +696,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:6">
+        <span class="link" style="--i:6">
       <span class="thumb thumb-twitch"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-twitch"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="twitch_title">Twitch</span>
         <span class="link-desc" data-i18n="twitch_desc">@eroxvilumex &mdash; live gameplay and chat with viewers.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">twitch.tv/eroxvilumex</p>
@@ -558,13 +715,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:7">
+        <span class="link" style="--i:7">
       <span class="thumb thumb-ig"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s0 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58 0-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.8 3.8 0 0 1-1.38-.9 3.8 3.8 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.2 15.58 2.2 15.2 2.2 12s0-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.2 8.8 2.2 12 2.2Zm0 1.8c-3.14 0-3.51.01-4.75.07-1.15.05-1.77.24-2.18.4-.55.22-.94.47-1.35.88-.41.41-.66.8-.88 1.35-.16.41-.35 1.03-.4 2.18C2.38 8.49 2.37 8.86 2.37 12s.01 3.51.07 4.75c.05 1.15.24 1.77.4 2.18.22.55.47.94.88 1.35.41.41.8.66 1.35.88.41.16 1.03.35 2.18.4 1.24.06 1.61.07 4.75.07s3.51-.01 4.75-.07c1.15-.05 1.77-.24 2.18-.4.55-.22.94-.47 1.35-.88.41-.41.66-.8.88-1.35.16-.41.35-1.03.4-2.18.06-1.24.07-1.61.07-4.75s-.01-3.51-.07-4.75c-.05-1.15-.24-1.77-.4-2.18a3.6 3.6 0 0 0-.88-1.35 3.6 3.6 0 0 0-1.35-.88c-.41-.16-1.03-.35-2.18-.4C15.51 4.01 15.14 4 12 4Zm0 3.06a4.94 4.94 0 1 1 0 9.88 4.94 4.94 0 0 1 0-9.88Zm0 1.8a3.14 3.14 0 1 0 0 6.28 3.14 3.14 0 0 0 0-6.28Zm5.15-2.24a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3Z"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="ig_title">Instagram</span>
         <span class="link-desc" data-i18n="ig_desc">@erox_vilumex &mdash; behind-the-scenes and screenshots.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">instagram.com/erox_vilumex</p>
@@ -577,13 +734,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:8">
+        <span class="link" style="--i:8">
       <span class="thumb thumb-tiktok"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tiktok"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="tiktok_title">TikTok</span>
         <span class="link-desc" data-i18n="tiktok_desc">@eroxvilumex &mdash; short clips and funny gameplay moments.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">tiktok.com/@eroxvilumex</p>
@@ -596,13 +753,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:9">
+        <span class="link" style="--i:9">
       <span class="thumb thumb-x"><svg viewBox="0 0 24 24"><path d="M17.5 3h3.2l-7 8 8.3 10h-6.5l-5-6.2-5.8 6.2H1.5l7.5-8.6L1 3h6.7l4.6 5.8L17.5 3Zm-1.1 16.1h1.8L7.7 4.8H5.8l10.6 14.3Z"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="x_title">X (Twitter)</span>
         <span class="link-desc" data-i18n="x_desc">@EroxVilumex &mdash; short posts, clips, and channel updates.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">x.com/EroxVilumex</p>
@@ -615,13 +772,13 @@ html[dir="rtl"] .url { text-align: right; }
 
     <details class="item">
       <summary>
-        <div class="link" style="--i:10">
+        <span class="link" style="--i:10">
       <span class="thumb thumb-reddit"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reddit"/></svg></span>
       <span class="link-body">
         <span class="link-title" data-i18n="reddit_title">Reddit</span>
         <span class="link-desc" data-i18n="reddit_desc">u/EroxVilumex &mdash; posts and community discussions.</span>
       </span>
-</div>
+      </span>
       </summary>
       <div class="panel">
         <p class="url">reddit.com/user/EroxVilumex</p>
@@ -641,6 +798,7 @@ html[dir="rtl"] .url { text-align: right; }
          target="_blank" rel="noopener noreferrer" data-i18n="videos_more">View all</a>
     </div>
     <div class="videos-grid" id="videosGrid"></div>
+    <noscript><a class="videos-fallback" href="https://www.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/videos" target="_blank" rel="noopener noreferrer"><span>Watch on YouTube</span></a></noscript>
   </section>
 
   <section class="playlists" aria-labelledby="playlistsTitle">
@@ -672,7 +830,7 @@ html[dir="rtl"] .url { text-align: right; }
 </main>
 
 <div id="toast" role="status" aria-live="polite"></div>
-<audio id="bgMusic" loop preload="none" src="music.mp3"></audio>
+<audio id="bgMusic" preload="none"></audio>
 
 <script>
 var T = {
@@ -687,7 +845,7 @@ var T = {
     tiktok_desc: "@eroxvilumex \u2014 short clips and funny gameplay moments.",
     bio: "Gaming videos, full playthroughs, and gameplay with funny commentary \u2014 on YouTube, and live on Twitch and Kick. I also run a Steam Family Sharing group \u2014 if you're short on games, come share the library.",
     yt_title: "YouTube \u2014 all videos",
-    yt_desc: "Gameplay videos with funny commentary. 98 videos and counting.",
+    yt_desc: "Gameplay videos with funny commentary, plus full playthroughs.",
     steam_title: "Steam profile",
     steam_desc: "eroxvilumex \u2014 send a friend request and join the family sharing group.",
     x_title: "X (Twitter)",
@@ -705,6 +863,20 @@ var T = {
     videos_title: "Latest videos",
     videos_more: "View all",
     videos_error: "Open the channel on YouTube",
+    videos_new: "New",
+    music_title: "Erox recommends these bangers",
+    music_loading: "Loading tracks\u2026",
+    music_empty: "No tracks yet \u2014 add .opus files to the music folder.",
+    music_unsupported: "This browser can\u2019t play that format",
+    music_pick: "Pick a track",
+    music_aria: "Music",
+    music_prev: "Previous",
+    music_next: "Next",
+    music_play: "Play",
+    music_pause: "Pause",
+    music_shuffle: "Shuffle",
+    music_volume: "Volume",
+    music_seek: "Seek",
     playlists_title: "Playlists",
     playlists_more: "View all",
     playlist_1: "Full games playthrough",
@@ -718,7 +890,6 @@ var T = {
     musicPause: "Pause background music",
     toastPlaying: "Music playing",
     toastPaused: "Music paused",
-    toastNotFound: "music.mp3 not found \u2014 check the filename",
     toastBlocked: "Tap the button again to allow audio",
     toastFailed: "Could not play the audio file",
     fluidAria: "Animated background",
@@ -739,7 +910,7 @@ var T = {
     tiktok_title: "تيك توك",
     tiktok_desc: "@eroxvilumex — مقاطع قصيرة ولحظات لعب مضحكة.",
     yt_title: "\u064a\u0648\u062a\u064a\u0648\u0628 \u2014 \u0643\u0644 \u0627\u0644\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a",
-    yt_desc: "\u0645\u0642\u0627\u0637\u0639 \u0644\u0639\u0628 \u0645\u0639 \u062a\u0639\u0644\u064a\u0642 \u0645\u0636\u062d\u0643. \u0669\u0668 \u0641\u064a\u062f\u064a\u0648 \u0648\u0627\u0644\u0639\u062f\u062f \u0641\u064a \u0632\u064a\u0627\u062f\u0629.",
+    yt_desc: "مقاطع لعب مع تعليق مضحك، بالإضافة إلى جلسات لعب كاملة.",
     steam_title: "\u062d\u0633\u0627\u0628 \u0633\u062a\u064a\u0645",
     steam_desc: "eroxvilumex \u2014 \u0623\u0631\u0633\u0644 \u0637\u0644\u0628 \u0635\u062f\u0627\u0642\u0629 \u0648\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0645\u062c\u0645\u0648\u0639\u0629 \u0645\u0634\u0627\u0631\u0643\u0629 \u0627\u0644\u0639\u0627\u0626\u0644\u0629.",
     x_title: "\u0625\u0643\u0633 (\u062a\u0648\u064a\u062a\u0631)",
@@ -757,6 +928,20 @@ var T = {
     videos_title: "أحدث الفيديوهات",
     videos_more: "عرض الكل",
     videos_error: "افتح القناة على يوتيوب",
+    videos_new: "جديد",
+    music_title: "إيروكس يرشّح لكم هذه الأغاني النار",
+    music_loading: "جارٍ تحميل المقاطع…",
+    music_empty: "لا توجد مقاطع بعد — أضف ملفات .opus إلى مجلد music.",
+    music_unsupported: "المتصفح لا يدعم هذه الصيغة",
+    music_pick: "اختر مقطعًا",
+    music_aria: "الموسيقى",
+    music_prev: "السابق",
+    music_next: "التالي",
+    music_play: "تشغيل",
+    music_pause: "إيقاف مؤقت",
+    music_shuffle: "عشوائي",
+    music_volume: "الصوت",
+    music_seek: "تقديم",
     playlists_title: "قوائم التشغيل",
     playlists_more: "عرض الكل",
     playlist_1: "\u0627\u0644\u0639\u0627\u0628 \u0643\u0627\u0645\u0644\u0629 \u0641\u064a \u0644\u0627\u064a\u0641 \u0648\u0627\u062d\u062f",
@@ -770,7 +955,6 @@ var T = {
     musicPause: "\u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0645\u0648\u0633\u064a\u0642\u0649",
     toastPlaying: "\u0627\u0644\u0645\u0648\u0633\u064a\u0642\u0649 \u062a\u0639\u0645\u0644",
     toastPaused: "\u062a\u0645 \u0625\u064a\u0642\u0627\u0641 \u0627\u0644\u0645\u0648\u0633\u064a\u0642\u0649",
-    toastNotFound: "\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0648\u0631 \u0639\u0644\u0649 music.mp3 \u2014 \u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0633\u0645 \u0627\u0644\u0645\u0644\u0641",
     toastBlocked: "\u0627\u0636\u063a\u0637 \u0627\u0644\u0632\u0631 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649 \u0644\u0644\u0633\u0645\u0627\u062d \u0628\u0627\u0644\u0635\u0648\u062a",
     toastFailed: "\u062a\u0639\u0630\u0651\u0631 \u062a\u0634\u063a\u064a\u0644 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0635\u0648\u062a\u064a",
     fluidAria: "الخلفية المتحركة",
@@ -812,9 +996,9 @@ function applyLang(l) {
   document.getElementById('langToggle').setAttribute('aria-label', t.langAria);
   document.getElementById('themeToggle').setAttribute('aria-label', t.themeAria);
   document.getElementById('fluidToggle').setAttribute('aria-label', t.fluidAria);
-  musicBtn.setAttribute('aria-label', audio.paused ? t.musicPlay : t.musicPause);
   if (window.renderVideos) window.renderVideos();
   if (window.renderPlaylists) window.renderPlaylists();
+  if (window.renderMusic) window.renderMusic();
 }
 
 function applyThemeColor() {
@@ -839,30 +1023,6 @@ function doTheme() {
   applyThemeColor();
   if (window.fluidRedraw) window.fluidRedraw();
 }
-
-function doMusic() {
-  if (!audio.paused) { audio.pause(); return; }
-  var p = audio.play();
-  if (p && typeof p.catch === 'function') {
-    p.catch(function (err) {
-      var name = err && err.name;
-      if (name === 'NotAllowedError') toast('toastBlocked');
-      else if (name === 'NotSupportedError') toast('toastNotFound');
-      else if (name !== 'AbortError') toast('toastFailed');
-    });
-  }
-}
-
-audio.addEventListener('play', function () {
-  musicBtn.classList.add('playing');
-  musicBtn.setAttribute('aria-label', T[currentLang()].musicPause);
-  toast('toastPlaying');
-});
-audio.addEventListener('pause', function () {
-  musicBtn.classList.remove('playing');
-  musicBtn.setAttribute('aria-label', T[currentLang()].musicPlay);
-  toast('toastPaused');
-});
 
 function copyText(text) {
   if (navigator.clipboard && window.isSecureContext) {
@@ -891,26 +1051,117 @@ document.addEventListener('toggle', function (e) {
   if (!d.classList || !d.classList.contains('item') || !d.open) return;
   var all = document.querySelectorAll('.item[open]');
   for (var i = 0; i < all.length; i++) if (all[i] !== d) all[i].open = false;
+  if (window.matchMedia('(max-width: 899px)').matches) {
+    var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setTimeout(function () { d.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' }); }, 60);
+  }
 }, true);
 
 /* ==========================================================================
-   Fluid background — 2D blob animation
+   Fluid background — WebGL domain-warped noise that swirls around the
+   pointer / finger and drifts with scroll. Falls back to a 2D canvas blob
+   animation when WebGL is unavailable. Pauses when hidden, adapts quality
+   to slow devices, and renders one still frame for reduced-motion users.
    ========================================================================== */
 (function () {
   var canvas = document.getElementById('fluid');
   if (!canvas) return;
-  var ctx = null;
-  try { ctx = canvas.getContext('2d'); } catch (e) {}
-  if (!ctx) return;
-
   var btn = document.getElementById('fluidToggle');
-  var SCALE = 0.3;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  var w = 0, h = 0, raf = 0, last = 0, t0 = 0;
-  var mouse = { x: 0, y: 0, at: -1e9 };
-  var wander = { x: 0, y: 0, next: 0 };
+  var coarse = window.matchMedia('(pointer: coarse)').matches;
+  var scale = coarse ? 0.35 : 0.5;
+  var raf = 0, last = 0, clock = 0, slow = 0, rt = 0;
+  var mode = '', gl = null, ctx = null, U = {};
+  var P = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, at: -1e9, s: 0.4, scroll: 0, tscroll: 0 };
+  var wander = { x: 0.5, y: 0.5, next: 0 };
+  function isDark() { return root.getAttribute('data-theme') === 'dark' ? 1 : 0; }
+  var darkMix = isDark();
 
+  var VERT = 'attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}';
+  var FRAG = [
+    '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+    'precision highp float;',
+    '#else',
+    'precision mediump float;',
+    '#endif',
+    'uniform vec2 uRes;',
+    'uniform float uTime;',
+    'uniform vec2 uMouse;',
+    'uniform float uMouseS;',
+    'uniform float uDark;',
+    'uniform float uScroll;',
+    'float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
+    'float noise(vec2 p){',
+    '  vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);',
+    '  float a=hash(i);float b=hash(i+vec2(1.0,0.0));',
+    '  float c=hash(i+vec2(0.0,1.0));float d=hash(i+vec2(1.0,1.0));',
+    '  return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);',
+    '}',
+    'float fbm(vec2 p){',
+    '  float v=0.0;float a=0.5;',
+    '  for(int i=0;i<4;i++){v+=a*noise(p);p=p*2.03+vec2(1.7,9.2);a*=0.5;}',
+    '  return v;',
+    '}',
+    'void main(){',
+    '  vec2 uv=gl_FragCoord.xy/uRes;',
+    '  float asp=uRes.x/uRes.y;',
+    '  vec2 p=vec2((uv.x-0.5)*asp,uv.y-0.5);',
+    '  vec2 m=vec2((uMouse.x-0.5)*asp,uMouse.y-0.5);',
+    '  vec2 d=p-m;',
+    '  float inf=exp(-dot(d,d)*7.0)*uMouseS;',
+    '  p+=vec2(-d.y,d.x)*inf*1.3;',
+    '  p.y+=uScroll*0.18;',
+    '  float t=uTime*0.05;',
+    '  vec2 q=vec2(fbm(p*1.3+vec2(0.0,t)),fbm(p*1.3+vec2(5.2,1.3)-t));',
+    '  vec2 w=vec2(fbm(p*1.3+2.4*q+vec2(1.7,9.2)+t*1.4),fbm(p*1.3+2.4*q+vec2(8.3,2.8)-t*1.2));',
+    '  float f=fbm(p*1.1+2.6*w);',
+    '  vec3 violet=mix(vec3(0.486,0.227,0.929),vec3(0.77,0.647,1.0),uDark);',
+    '  vec3 pink=vec3(0.925,0.282,0.6);',
+    '  vec3 sky=vec3(0.22,0.74,0.97);',
+    '  vec3 col=mix(violet,pink,smoothstep(0.35,0.62,w.x));',
+    '  col=mix(col,sky,smoothstep(0.42,0.7,w.y)*0.8);',
+    '  float a=smoothstep(0.3,0.66,f);',
+    '  a=0.05+mix(0.18,0.28,uDark)*a;',
+    '  a+=inf*0.1;',
+    '  a*=0.75+0.25*(1.0-smoothstep(0.2,1.1,length(uv-0.5)*1.4));',
+    '  a+=(hash(gl_FragCoord.xy)-0.5)/255.0;',
+    '  a=clamp(a,0.0,1.0);',
+    '  gl_FragColor=vec4(col*a,a);',
+    '}'
+  ].join('\n');
+
+  function compile(type, src) {
+    var sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
+  }
+
+  function initGL() {
+    var opts = { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' };
+    try { gl = canvas.getContext('webgl', opts) || canvas.getContext('experimental-webgl', opts); } catch (e) { gl = null; }
+    if (!gl) return false;
+    var vs = compile(gl.VERTEX_SHADER, VERT), fs = compile(gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) return false;
+    var pr = gl.createProgram();
+    gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return false;
+    gl.useProgram(pr);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(pr, 'aPos');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    U = {
+      res: gl.getUniformLocation(pr, 'uRes'), time: gl.getUniformLocation(pr, 'uTime'),
+      mouse: gl.getUniformLocation(pr, 'uMouse'), mouseS: gl.getUniformLocation(pr, 'uMouseS'),
+      dark: gl.getUniformLocation(pr, 'uDark'), scroll: gl.getUniformLocation(pr, 'uScroll')
+    };
+    return true;
+  }
+
+  /* ---- 2D fallback ---- */
   var COLORS = {
     light: ['124,58,237', '236,72,153', '56,189,248', '167,139,250', '244,114,182'],
     dark:  ['196,165,255', '124,58,237', '236,72,153', '56,189,248', '167,139,250']
@@ -922,45 +1173,20 @@ document.addEventListener('toggle', function (e) {
     { r: 0.38, k: 0.014, orbit: 0.28, sp: 0.3, ph: 4.0 },
     { r: 0.28, k: 0.040, orbit: 0.12, sp: 0.7, ph: 5.2 }
   ];
-
-  function resize() {
-    w = Math.max(2, Math.ceil(window.innerWidth * SCALE));
-    h = Math.max(2, Math.ceil(window.innerHeight * SCALE));
-    canvas.width = w; canvas.height = h;
-    if (!blobs[0].x) for (var i = 0; i < blobs.length; i++) { blobs[i].x = w / 2; blobs[i].y = h / 2; }
-    if (!raf) draw(performance.now());
-  }
-
-  function pickWander(now) {
-    wander.x = w * (0.1 + Math.random() * 0.8);
-    wander.y = h * (0.1 + Math.random() * 0.8);
-    wander.next = now + 2800 + Math.random() * 1800;
-  }
-
-  function draw(now) {
-    var dark = root.getAttribute('data-theme') === 'dark';
-    var cols = dark ? COLORS.dark : COLORS.light;
-    var alpha = dark ? 0.34 : 0.30;
-    var t = (now - t0) / 1000;
-    var dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000)); last = now;
-    var following = finePointer && now - mouse.at < 2500;
-    if (!following && now > wander.next) pickWander(now);
-    var tx = following ? mouse.x : wander.x;
-    var ty = following ? mouse.y : wander.y;
-    var m = Math.min(w, h), big = Math.max(w, h);
-
+  function draw2D() {
+    var w = canvas.width, h = canvas.height, dark = darkMix > 0.5;
+    var cols = dark ? COLORS.dark : COLORS.light, alpha = dark ? 0.34 : 0.30;
+    var tx = P.x * w, ty = (1 - P.y) * h, m = Math.min(w, h), big = Math.max(w, h);
     ctx.clearRect(0, 0, w, h);
     ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over';
     for (var i = 0; i < blobs.length; i++) {
       var b = blobs[i];
-      var gx = tx + Math.cos(t * b.sp + b.ph) * b.orbit * m * 1.4;
-      var gy = ty + Math.sin(t * b.sp * 1.3 + b.ph) * b.orbit * m * 1.4;
-      var e = 1 - Math.pow(1 - b.k, dt * 60);
-      b.x += (gx - b.x) * e;
-      b.y += (gy - b.y) * e;
-      var rad = b.r * big;
+      if (b.x === undefined) { b.x = tx; b.y = ty; }
+      var gx = tx + Math.cos(clock * b.sp + b.ph) * b.orbit * m * 1.4;
+      var gy = ty + Math.sin(clock * b.sp * 1.3 + b.ph) * b.orbit * m * 1.4;
+      b.x += (gx - b.x) * b.k; b.y += (gy - b.y) * b.k;
+      var rad = b.r * big, c = cols[i % cols.length];
       var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, rad);
-      var c = cols[i % cols.length];
       g.addColorStop(0, 'rgba(' + c + ',' + alpha + ')');
       g.addColorStop(0.55, 'rgba(' + c + ',' + (alpha * 0.4) + ')');
       g.addColorStop(1, 'rgba(' + c + ',0)');
@@ -969,23 +1195,90 @@ document.addEventListener('toggle', function (e) {
     }
   }
 
-  function loop(now) { draw(now); raf = requestAnimationFrame(loop); }
+  /* ---- shared state + drawing ---- */
+  function update(dt, now) {
+    darkMix += (isDark() - darkMix) * (1 - Math.exp(-dt * 6));
+    clock += dt;
+    var active = now - P.at < 2200;
+    if (!active && now > wander.next) {
+      wander.x = 0.15 + Math.random() * 0.7;
+      wander.y = 0.15 + Math.random() * 0.7;
+      wander.next = now + 3500 + Math.random() * 2500;
+    }
+    var tx = active ? P.tx : wander.x, ty = active ? P.ty : wander.y;
+    var e = 1 - Math.exp(-dt * (active ? 5 : 0.9));
+    P.x += (tx - P.x) * e; P.y += (ty - P.y) * e;
+    P.s += ((active ? 1 : 0.4) - P.s) * (1 - Math.exp(-dt * 2.5));
+    P.scroll += (P.tscroll - P.scroll) * (1 - Math.exp(-dt * 4));
+  }
+
+  function paint(dt, now) {
+    if (!mode) return;
+    update(dt, now);
+    if (mode === 'gl') {
+      if (gl.isContextLost()) return;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(U.res, canvas.width, canvas.height);
+      gl.uniform1f(U.time, clock);
+      gl.uniform2f(U.mouse, P.x, P.y);
+      gl.uniform1f(U.mouseS, P.s);
+      gl.uniform1f(U.dark, darkMix);
+      gl.uniform1f(U.scroll, P.scroll);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    } else {
+      draw2D();
+    }
+  }
+
+  function resize(force) {
+    var w = Math.max(2, Math.round(window.innerWidth * scale));
+    var h = Math.max(2, Math.round(window.innerHeight * scale));
+    if (!force && w === canvas.width && h === canvas.height) return;
+    canvas.width = w; canvas.height = h;
+    if (!raf) paint(0, performance.now());
+  }
+
+  function loop(now) {
+    raf = requestAnimationFrame(loop);
+    var raw = (now - last) / 1000;
+    if (coarse && raw < 0.028) return;
+    last = now;
+    if (raw > 0.2) raw = 0.016;
+    else {
+      if (raw > (coarse ? 0.045 : 0.026)) slow++; else if (slow > 0) slow--;
+      if (slow > 45 && scale > 0.2) { scale *= 0.75; slow = 0; resize(true); }
+    }
+    paint(Math.min(raw, 0.05), now);
+  }
   function start() {
-    if (reduce || raf || root.classList.contains('fluid-off')) return;
+    if (reduce || raf || !mode || root.classList.contains('fluid-off')) return;
     last = performance.now();
     raf = requestAnimationFrame(loop);
   }
   function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
 
-  window.addEventListener('pointermove', function (e) {
-    if (e.pointerType !== 'mouse') return;
-    mouse.x = e.clientX * SCALE; mouse.y = e.clientY * SCALE; mouse.at = performance.now();
+  function onPointer(e) {
+    P.tx = e.clientX / window.innerWidth;
+    P.ty = 1 - e.clientY / window.innerHeight;
+    P.at = performance.now();
+  }
+  window.addEventListener('pointermove', onPointer, { passive: true });
+  window.addEventListener('pointerdown', onPointer, { passive: true });
+  document.addEventListener('mouseleave', function () { P.at = -1e9; });
+  window.addEventListener('scroll', function () {
+    P.tscroll = window.scrollY / Math.max(1, window.innerHeight);
   }, { passive: true });
-  document.addEventListener('mouseleave', function () { mouse.at = -1e9; });
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(resize, 150); });
   document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
 
-  window.fluidRedraw = function () { if (!raf) draw(performance.now()); };
+  canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); stop(); }, false);
+  canvas.addEventListener('webglcontextrestored', function () {
+    if (mode === 'gl' && initGL()) { resize(true); start(); }
+  }, false);
+
+  window.fluidRedraw = function () {
+    if (!raf) { darkMix = isDark(); paint(0, performance.now()); }
+  };
   window.doFluid = function () {
     var off = root.classList.toggle('fluid-off');
     store('fluid', off ? 'off' : 'on');
@@ -993,18 +1286,23 @@ document.addEventListener('toggle', function (e) {
     if (off) stop(); else { start(); window.fluidRedraw(); }
   };
 
-  t0 = performance.now();
+  if (initGL()) mode = 'gl';
+  else {
+    gl = null;
+    try { ctx = canvas.getContext('2d'); } catch (e) {}
+    if (ctx) mode = '2d';
+  }
   if (btn) btn.setAttribute('aria-pressed', root.classList.contains('fluid-off') ? 'false' : 'true');
-  resize();
-  pickWander(t0);
-  if (reduce) {
-    for (var i = 0; i < blobs.length; i++) { blobs[i].x = w * (0.2 + 0.15 * i); blobs[i].y = h * (0.3 + 0.1 * i); }
-    draw(t0 + 1000);
-  } else start();
+  if (!mode) { canvas.style.display = 'none'; return; }
+
+  if (reduce) clock = 14;
+  resize(true);
+  requestAnimationFrame(function () { canvas.classList.add('ready'); });
+  start();
 })();
 
 /* ==========================================================================
-   Latest YouTube videos — rss2json primary + XML proxies as fallback
+   Latest YouTube videos — auto-updating (RSS via rss2json / proxies, cached, refreshed every 10 min)
    ========================================================================== */
 (function () {
   var CHANNEL_ID = 'UCoDs7EzXlKTj_py9_Glq9ZQ';
@@ -1088,6 +1386,12 @@ document.addEventListener('toggle', function (e) {
     return out;
   }
 
+  function normDate(d) {
+    d = String(d || '').trim();
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(d)) return d.replace(' ', 'T') + 'Z';
+    return d;
+  }
+
   function parseRss2Json(data) {
     if (!data || data.status !== 'ok' || !data.items || !data.items.length) return [];
     var out = [];
@@ -1100,7 +1404,7 @@ document.addEventListener('toggle', function (e) {
       out.push({
         id: vid,
         title: it.title || 'Untitled',
-        published: it.pubDate || '',
+        published: normDate(it.pubDate),
         url: it.link || ('https://www.youtube.com/watch?v=' + vid),
         thumb: 'https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg'
       });
@@ -1129,6 +1433,14 @@ document.addEventListener('toggle', function (e) {
     }
   ];
 
+  /* Optional: paste your Cloudflare Worker URL here (see instructions) for the most reliable updates. */
+  var WORKER_URL = '';
+  if (WORKER_URL) {
+    SOURCES.unshift(function () {
+      return fetchTimeout(WORKER_URL + '?channel_id=' + CHANNEL_ID, 9000, false).then(parseXml);
+    });
+  }
+
   function tryAll() {
     var i = 0;
     function next() {
@@ -1148,12 +1460,17 @@ document.addEventListener('toggle', function (e) {
     if (isNaN(d.getTime())) return '';
     var s = Math.max(1, (Date.now() - d.getTime()) / 1000);
     var t = T[currentLang()];
-    if (s < 3600) return Math.floor(s / 60) + t.agoMin;
+    if (s < 3600) return Math.max(1, Math.floor(s / 60)) + t.agoMin;
     if (s < 86400) return Math.floor(s / 3600) + t.agoHour;
     if (s < 604800) return Math.floor(s / 86400) + t.agoDay;
     if (s < 2592000) return Math.floor(s / 604800) + t.agoWeek;
     if (s < 31536000) return Math.floor(s / 2592000) + t.agoMonth;
     return Math.floor(s / 31536000) + t.agoYear;
+  }
+
+  function isNew(published) {
+    var d = new Date(published);
+    return !isNaN(d.getTime()) && (Date.now() - d.getTime()) < 3 * 86400 * 1000;
   }
 
   function mk(tag, cls, text) {
@@ -1214,6 +1531,12 @@ document.addEventListener('toggle', function (e) {
       });
       thumbWrap.appendChild(img);
 
+      var play = mk('span', 'video-play');
+      play.setAttribute('aria-hidden', 'true');
+      play.innerHTML = '<span><svg viewBox="0 0 24 24"><use href="#i-play"></use></svg></span>';
+      thumbWrap.appendChild(play);
+      if (isNew(v.published)) thumbWrap.appendChild(mk('span', 'video-new', T[currentLang()].videos_new));
+
       card2.appendChild(thumbWrap);
       card2.appendChild(mk('span', 'video-title', v.title));
       card2.appendChild(mk('span', 'video-meta', relTime(v.published)));
@@ -1221,18 +1544,52 @@ document.addEventListener('toggle', function (e) {
     }
   };
 
-  window.renderVideos();
+  var CACHE_KEY = 'yt_latest_v1';
+  var REFRESH_MS = 10 * 60 * 1000;
+  var lastFetch = 0, busy = false;
 
-  tryAll()
-    .then(function (list) {
-      videos = list;
-      state = 'ready';
-      window.renderVideos();
-    })
-    .catch(function () {
-      state = 'error';
-      window.renderVideos();
-    });
+  function sig(list) {
+    var a = [];
+    for (var i = 0; i < list.length; i++) a.push(list[i].id);
+    return a.join(',');
+  }
+  function readCache() {
+    try {
+      var c = JSON.parse(localStorage.getItem(CACHE_KEY));
+      if (c && c.list && c.list.length) return c.list.slice(0, MAX);
+    } catch (e) {}
+    return null;
+  }
+  function writeCache(list) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), list: list })); } catch (e) {}
+  }
+
+  function refresh() {
+    if (busy) return;
+    busy = true;
+    tryAll()
+      .then(function (list) {
+        var changed = state !== 'ready' || sig(list) !== sig(videos);
+        videos = list;
+        state = 'ready';
+        writeCache(list);
+        if (changed) window.renderVideos();
+      })
+      .catch(function () {
+        if (!videos.length) { state = 'error'; window.renderVideos(); }
+      })
+      .then(function () { busy = false; lastFetch = Date.now(); });
+  }
+
+  var cached = readCache();
+  if (cached) { videos = cached; state = 'ready'; }
+  window.renderVideos();
+  refresh();
+
+  setInterval(function () { if (!document.hidden) refresh(); }, REFRESH_MS);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && Date.now() - lastFetch > REFRESH_MS) refresh();
+  });
 })();
 
 /* ==========================================================================
@@ -1308,6 +1665,324 @@ document.addEventListener('toggle', function (e) {
 
   window.renderPlaylists = render;
   render();
+})();
+
+/* ==========================================================================
+   Music player — tracks are discovered automatically from the /music folder.
+   Upload files to /music in the repo and they appear in the menu:
+     1. GitHub API lists the folder (works on username.github.io sites)
+     2. fallback: music/tracks.json  (["a.opus", {"file":"b.opus","title":"B"}])
+   Order = file name (natural sort), so "01 - Song.opus" goes first.
+   ========================================================================== */
+(function () {
+  var MUSIC_FOLDER = 'music';
+  var MUSIC_REPO = '';            /* optional override, e.g. 'erox/my-site' (needed on custom domains) */
+  var EXT = /\.(opus|ogg|oga|mp3|m4a|aac|wav|flac|webm)$/i;
+  var MIME = { opus: 'audio/ogg; codecs="opus"', ogg: 'audio/ogg', oga: 'audio/ogg', mp3: 'audio/mpeg',
+               m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', flac: 'audio/flac', webm: 'audio/webm; codecs="opus"' };
+  var CACHE_KEY = 'music_tracks_v1', CACHE_MS = 10 * 60 * 1000;
+
+  var btn = document.getElementById('musicToggle');
+  var panel = document.getElementById('musicPanel');
+  if (!btn || !panel || !audio) return;
+  var wrap = btn.parentNode;
+  var list = document.getElementById('trackList');
+  var msg = document.getElementById('musicMsg');
+  var player = document.getElementById('player');
+  var now = document.getElementById('nowPlaying');
+  var seek = document.getElementById('seek');
+  var tCur = document.getElementById('tCur');
+  var tDur = document.getElementById('tDur');
+  var bPlay = document.getElementById('bPlay');
+  var bPrev = document.getElementById('bPrev');
+  var bNext = document.getElementById('bNext');
+  var bShuffle = document.getElementById('bShuffle');
+  var vol = document.getElementById('vol');
+
+  var tracks = [], cur = -1, loaded = false, loading = false, seeking = false, msgKey = '';
+  var shuffle = false, v0 = 0.8;
+  try { shuffle = localStorage.getItem('shuffle') === '1'; } catch (e) {}
+  try { var sv = parseFloat(localStorage.getItem('vol')); if (sv >= 0 && sv <= 1) v0 = sv; } catch (e) {}
+
+  function tr(k) { return T[currentLang()][k] || k; }
+  function fmt(x) {
+    if (!isFinite(x) || x < 0) x = 0;
+    var m = Math.floor(x / 60), s = Math.floor(x % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  function fill(el) {
+    var span = (el.max - el.min) || 1;
+    el.style.setProperty('--p', ((el.value - el.min) / span * 100) + '%');
+  }
+  function setMsg(k) { msgKey = k; msg.textContent = k ? tr(k) : ''; msg.hidden = !k; }
+
+  /* ---------- discovering tracks ---------- */
+  function repoGuess() {
+    if (MUSIC_REPO) return MUSIC_REPO;
+    var h = location.hostname;
+    if (!/\.github\.io$/i.test(h)) return '';
+    var owner = h.split('.')[0];
+    var seg = location.pathname.split('/')[1] || '';
+    var repo = (seg && seg.indexOf('.') === -1) ? seg : owner + '.github.io';
+    return owner + '/' + repo;
+  }
+  function getJson(url, ms) {
+    return new Promise(function (resolve, reject) {
+      var ctl = null;
+      try { ctl = new AbortController(); } catch (e) {}
+      var timer = setTimeout(function () { try { if (ctl) ctl.abort(); } catch (e) {} reject(new Error('timeout')); }, ms);
+      var opts = { cache: 'no-cache' };
+      if (ctl) opts.signal = ctl.signal;
+      fetch(url, opts).then(function (r) {
+        clearTimeout(timer);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(resolve, function (e) { clearTimeout(timer); reject(e); });
+    });
+  }
+  function natural(a, b) { return a.file.localeCompare(b.file, undefined, { numeric: true, sensitivity: 'base' }); }
+  function fromApi() {
+    var repo = repoGuess();
+    if (!repo) return Promise.reject(new Error('no repo'));
+    return getJson('https://api.github.com/repos/' + repo + '/contents/' + MUSIC_FOLDER, 8000).then(function (items) {
+      var out = [];
+      for (var i = 0; items && i < items.length; i++) {
+        if (items[i].type === 'file' && EXT.test(items[i].name)) out.push({ file: items[i].name });
+      }
+      if (!out.length) throw new Error('empty');
+      return out.sort(natural);
+    });
+  }
+  function fromManifest() {
+    return getJson(MUSIC_FOLDER + '/tracks.json', 6000).then(function (data) {
+      var items = (data && data.tracks) ? data.tracks : data, out = [];
+      for (var i = 0; items && i < items.length; i++) {
+        var it = items[i];
+        if (typeof it === 'string') { if (EXT.test(it)) out.push({ file: it }); }
+        else if (it && it.file) out.push({ file: it.file, title: it.title });
+      }
+      if (!out.length) throw new Error('empty');
+      return out;
+    });
+  }
+  function readCache() {
+    try { var c = JSON.parse(localStorage.getItem(CACHE_KEY)); if (c && c.list && c.list.length) return c; } catch (e) {}
+    return null;
+  }
+  function niceTitle(file) {
+    var n = file.replace(EXT, '').replace(/_+/g, ' ').replace(/^\s*\d{1,3}\s*[-.)]\s+/, '').replace(/\s+/g, ' ').trim();
+    return n || file;
+  }
+  function canPlay(file) {
+    var m = MIME[file.split('.').pop().toLowerCase()];
+    if (!m) return true;
+    try { return audio.canPlayType(m) !== ''; } catch (e) { return true; }
+  }
+  function finish(entries) {
+    loading = false;
+    tracks = [];
+    for (var i = 0; i < entries.length; i++) {
+      var f = entries[i].file;
+      tracks.push({ file: f, url: MUSIC_FOLDER + '/' + encodeURIComponent(f), title: entries[i].title || niceTitle(f), ok: canPlay(f) });
+    }
+    loaded = tracks.length > 0;
+    cur = -1;
+    render();
+  }
+  function load() {
+    if (loaded || loading) return;
+    loading = true;
+    setMsg('music_loading');
+    var c = readCache();
+    if (c && Date.now() - c.t < CACHE_MS) { finish(c.list); return; }
+    fromApi().catch(fromManifest).then(function (entries) {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), list: entries })); } catch (e) {}
+      finish(entries);
+    }, function () { finish(c ? c.list : []); });
+  }
+
+  /* ---------- UI ---------- */
+  function render() {
+    list.innerHTML = '';
+    if (!tracks.length) { player.hidden = true; setMsg(loading ? 'music_loading' : 'music_empty'); return; }
+    setMsg('');
+    player.hidden = false;
+    for (var i = 0; i < tracks.length; i++) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'track' + (tracks[i].ok ? '' : ' bad');
+      b.setAttribute('data-i', i);
+      var n = document.createElement('span'); n.className = 'track-n'; n.textContent = i + 1;
+      var eq = document.createElement('span'); eq.className = 'eq'; eq.innerHTML = '<i></i><i></i><i></i>';
+      var t = document.createElement('span'); t.className = 'track-name'; t.textContent = tracks[i].title;
+      b.appendChild(n); b.appendChild(eq); b.appendChild(t);
+      li.appendChild(b); list.appendChild(li);
+    }
+    sync();
+  }
+  function labels() {
+    btn.setAttribute('aria-label', tr('music_aria'));
+    bPrev.setAttribute('aria-label', tr('music_prev'));
+    bNext.setAttribute('aria-label', tr('music_next'));
+    bShuffle.setAttribute('aria-label', tr('music_shuffle'));
+    vol.setAttribute('aria-label', tr('music_volume'));
+    seek.setAttribute('aria-label', tr('music_seek'));
+    if (msgKey) setMsg(msgKey);
+    sync();
+  }
+  function sync() {
+    var playing = !audio.paused && !audio.ended;
+    btn.classList.toggle('playing', playing);
+    player.classList.toggle('is-playing', playing);
+    bPlay.setAttribute('aria-label', tr(playing ? 'music_pause' : 'music_play'));
+    bShuffle.classList.toggle('on', shuffle);
+    bShuffle.setAttribute('aria-pressed', shuffle ? 'true' : 'false');
+    var items = list.children;
+    for (var i = 0; i < items.length; i++) {
+      var b = items[i].firstChild;
+      b.classList.toggle('active', i === cur);
+      b.classList.toggle('playing', i === cur && playing);
+      if (i === cur) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    }
+    now.textContent = cur >= 0 ? tracks[cur].title : tr('music_pick');
+  }
+  function progress() {
+    var d = audio.duration;
+    tCur.textContent = fmt(audio.currentTime);
+    tDur.textContent = (isFinite(d) && d > 0) ? fmt(d) : '0:00';
+    seek.value = (isFinite(d) && d > 0) ? Math.round(audio.currentTime / d * 1000) : 0;
+    fill(seek);
+  }
+
+  /* ---------- playback ---------- */
+  function tryPlay() {
+    var p = audio.play();
+    if (p && p.catch) p.catch(function (err) { if (err && err.name === 'NotAllowedError') toast('toastBlocked'); });
+  }
+  function play(i) {
+    var t = tracks[i];
+    if (!t) return;
+    if (!t.ok) { toast('music_unsupported'); return; }
+    cur = i; seeking = false;
+    audio.src = t.url;
+    progress();
+    tryPlay();
+    sync();
+    if ('mediaSession' in navigator && typeof MediaMetadata !== 'undefined') {
+      try { navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: 'Erox Vilumex' }); } catch (e) {}
+    }
+  }
+  function pickNext(dir) {
+    var n = tracks.length, i, c = [];
+    if (!n) return -1;
+    if (shuffle) {
+      for (i = 0; i < n; i++) if (tracks[i].ok && i !== cur) c.push(i);
+      if (c.length) return c[Math.floor(Math.random() * c.length)];
+      return (cur >= 0 && tracks[cur].ok) ? cur : -1;
+    }
+    var base = cur < 0 ? (dir > 0 ? -1 : 0) : cur;
+    for (i = 1; i <= n; i++) {
+      var idx = ((base + dir * i) % n + n) % n;
+      if (tracks[idx].ok) return idx;
+    }
+    return -1;
+  }
+  function next() { var i = pickNext(1); if (i >= 0) play(i); }
+  function prev() {
+    if (cur >= 0 && audio.currentTime > 3) { audio.currentTime = 0; return; }
+    var i = pickNext(-1); if (i >= 0) play(i);
+  }
+  function toggle() {
+    if (cur < 0) { next(); return; }
+    if (audio.paused) tryPlay(); else audio.pause();
+  }
+
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.track') : null;
+    if (!b) return;
+    var i = +b.getAttribute('data-i');
+    if (i === cur) toggle(); else play(i);
+  });
+  bPlay.addEventListener('click', toggle);
+  bNext.addEventListener('click', next);
+  bPrev.addEventListener('click', prev);
+  bShuffle.addEventListener('click', function () {
+    shuffle = !shuffle; store('shuffle', shuffle ? '1' : '0'); sync();
+  });
+  vol.addEventListener('input', function () {
+    audio.volume = vol.value / 100; store('vol', String(vol.value / 100)); fill(vol);
+  });
+  seek.addEventListener('input', function () {
+    seeking = true; fill(seek);
+    var d = audio.duration;
+    if (isFinite(d) && d > 0) tCur.textContent = fmt(seek.value / 1000 * d);
+  });
+  seek.addEventListener('change', function () {
+    var d = audio.duration;
+    if (isFinite(d) && d > 0) audio.currentTime = seek.value / 1000 * d;
+    seeking = false;
+  });
+
+  audio.addEventListener('timeupdate', function () { if (!seeking) progress(); });
+  audio.addEventListener('loadedmetadata', progress);
+  audio.addEventListener('play', sync);
+  audio.addEventListener('pause', sync);
+  audio.addEventListener('ended', function () { sync(); next(); });
+  audio.addEventListener('error', function () {
+    if (cur < 0 || !tracks[cur]) return;
+    tracks[cur].ok = false;
+    var items = list.children;
+    if (items[cur]) items[cur].firstChild.classList.add('bad');
+    toast('music_unsupported');
+    sync();
+  });
+
+  if ('mediaSession' in navigator) {
+    var ms = navigator.mediaSession;
+    try {
+      ms.setActionHandler('play', function () { tryPlay(); });
+      ms.setActionHandler('pause', function () { audio.pause(); });
+      ms.setActionHandler('previoustrack', prev);
+      ms.setActionHandler('nexttrack', next);
+    } catch (e) {}
+  }
+
+  /* ---------- dropdown ---------- */
+  function openMenu() { panel.hidden = false; btn.setAttribute('aria-expanded', 'true'); load(); }
+  function closeMenu() { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+  btn.addEventListener('click', function () { if (panel.hidden) openMenu(); else closeMenu(); });
+  document.addEventListener('click', function (e) {
+    if (!panel.hidden && !wrap.contains(e.target)) closeMenu();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !panel.hidden) { closeMenu(); btn.focus(); }
+  });
+
+  audio.volume = v0;
+  vol.value = Math.round(v0 * 100);
+  fill(vol); fill(seek);
+  window.renderMusic = labels;
+  labels();
+})();
+
+/* ==========================================================================
+   Scroll reveal for the lower sections
+   ========================================================================== */
+(function () {
+  var els = document.querySelectorAll('.videos, .playlists, .footer');
+  var i;
+  for (i = 0; i < els.length; i++) els[i].classList.add('reveal');
+  if (!('IntersectionObserver' in window)) {
+    for (i = 0; i < els.length; i++) els[i].classList.add('in');
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    for (var j = 0; j < entries.length; j++) {
+      if (entries[j].isIntersecting) { entries[j].target.classList.add('in'); io.unobserve(entries[j].target); }
+    }
+  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 });
+  for (i = 0; i < els.length; i++) io.observe(els[i]);
 })();
 
 applyLang(currentLang());
