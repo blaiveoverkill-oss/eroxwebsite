@@ -1230,8 +1230,7 @@ document.addEventListener('toggle', function (e) {
 })();
 
 /* ==========================================================================
-   Playlists — thumbnails from the first video ID (instant), titles fetched
-   asynchronously from YouTube via oEmbed → noembed → page scrape.
+   Playlists — titles hardcoded (English + Arabic), thumbnails from video ID.
    ========================================================================== */
 (function () {
   var grid = document.getElementById('playlistsGrid');
@@ -1240,24 +1239,21 @@ document.addEventListener('toggle', function (e) {
   var PLAYLISTS = [
     {
       videoId: 'hIRqQ-UG0ZU',
-      listId: 'PLXBYaKrGn-MQ',
       url: 'https://www.youtube.com/watch?v=hIRqQ-UG0ZU&list=PLXBYaKrGn-MQ',
-      title: null,
-      fallbackTitle: 'YouTube playlists'
+      titleEn: 'Full games playthrough',
+      titleAr: '\u0627\u0644\u0639\u0627\u0628 \u0643\u0627\u0645\u0644\u0629 \u0641\u064a \u0644\u0627\u064a\u0641 \u0648\u0627\u062d\u062f'
     },
     {
       videoId: 'TmrEuNjVpyw',
-      listId: 'PLI-jPcEHcEao',
       url: 'https://www.youtube.com/watch?v=TmrEuNjVpyw&list=PLI-jPcEHcEao',
-      title: null,
-      fallbackTitle: 'Gaming series'
+      titleEn: 'Classic flash games',
+      titleAr: '\u0627\u0644\u0639\u0627\u0628 \u0641\u0644\u0627\u0634 \u0645\u0646 \u0627\u0644\u0632\u0645\u0646 \u0627\u0644\u062c\u0645\u064a\u0644'
     },
     {
       videoId: 'ud7gb8baqbw',
-      listId: 'PLD-FRzVfHjBM',
       url: 'https://www.youtube.com/watch?v=ud7gb8baqbw&list=PLD-FRzVfHjBM&pp=0gcJCbwFa94AFGB0',
-      title: null,
-      fallbackTitle: 'All collections'
+      titleEn: 'Idiot plays Doki Doki Literature Club \u2014 full series with Arabic translation',
+      titleAr: '\u0627\u062d\u0645\u0642 \u064a\u0644\u0639\u0628 \u0633\u0644\u0633\u0644\u0629 doki doki literature club \u0643\u0627\u0645\u0644\u0629 \u0648\u0645\u0639\u0631\u0628\u0629'
     }
   ];
 
@@ -1272,20 +1268,8 @@ document.addEventListener('toggle', function (e) {
     return n;
   }
 
-  function decodeEntities(s) {
-    if (!s) return '';
-    return String(s)
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#0*39;/g, "'")
-      .replace(/&#x0*27;/gi, "'")
-      .replace(/&#x2F;/gi, '/')
-      .replace(/&nbsp;/g, ' ');
-  }
-
   function render() {
+    var l = currentLang();
     grid.innerHTML = '';
     for (var i = 0; i < PLAYLISTS.length; i++) {
       var p = PLAYLISTS[i];
@@ -1299,7 +1283,7 @@ document.addEventListener('toggle', function (e) {
       img.loading = 'lazy';
       img.alt = '';
       img.referrerPolicy = 'no-referrer';
-      img.src = p.thumb || thumbFor(p.videoId);
+      img.src = thumbFor(p.videoId);
       img.addEventListener('error', function () {
         if (this.dataset.retried) return;
         this.dataset.retried = '1';
@@ -1312,121 +1296,13 @@ document.addEventListener('toggle', function (e) {
       thumbWrap.appendChild(badge);
 
       a.appendChild(thumbWrap);
-      a.appendChild(mk('span', 'playlist-name', p.title || p.fallbackTitle));
+      a.appendChild(mk('span', 'playlist-name', l === 'ar' ? p.titleAr : p.titleEn));
       grid.appendChild(a);
     }
   }
 
   window.renderPlaylists = render;
   render();
-
-  function fetchJson(url, ms) {
-    return new Promise(function (resolve, reject) {
-      var controller = null, timer = null;
-      try {
-        controller = new AbortController();
-        timer = setTimeout(function () {
-          try { controller.abort(); } catch (e) {}
-          reject(new Error('timeout'));
-        }, ms);
-      } catch (e) {}
-      var opts = { credentials: 'omit', mode: 'cors' };
-      if (controller) opts.signal = controller.signal;
-      fetch(url, opts).then(function (r) {
-        if (timer) clearTimeout(timer);
-        if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
-        resolve(r.json());
-      }, function (err) {
-        if (timer) clearTimeout(timer);
-        reject(err);
-      });
-    });
-  }
-
-  function fetchText(url, ms) {
-    return new Promise(function (resolve, reject) {
-      var controller = null, timer = null;
-      try {
-        controller = new AbortController();
-        timer = setTimeout(function () {
-          try { controller.abort(); } catch (e) {}
-          reject(new Error('timeout'));
-        }, ms);
-      } catch (e) {}
-      var opts = { credentials: 'omit', mode: 'cors' };
-      if (controller) opts.signal = controller.signal;
-      fetch(url, opts).then(function (r) {
-        if (timer) clearTimeout(timer);
-        if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
-        resolve(r.text());
-      }, function (err) {
-        if (timer) clearTimeout(timer);
-        reject(err);
-      });
-    });
-  }
-
-  function tryOembed(listId) {
-    var target = 'https://www.youtube.com/playlist?list=' + listId;
-    var u = 'https://www.youtube.com/oembed?url=' + encodeURIComponent(target) + '&format=json';
-    return fetchJson(u, 7000).then(function (d) {
-      if (d && d.title) return d.title;
-      throw new Error('no title');
-    });
-  }
-
-  function tryNoembed(listId) {
-    var target = 'https://www.youtube.com/playlist?list=' + listId;
-    var u = 'https://noembed.com/embed?url=' + encodeURIComponent(target);
-    return fetchJson(u, 7000).then(function (d) {
-      if (d && d.title) return d.title;
-      throw new Error('no title');
-    });
-  }
-
-  function tryPageViaProxy(listId, proxyFn) {
-    var pageUrl = 'https://www.youtube.com/playlist?list=' + listId + '&hl=en&persist_hl=1';
-    return fetchText(proxyFn(pageUrl), 9000).then(function (html) {
-      if (!html) throw new Error('empty');
-      var m =
-        html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
-        html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:title["']/i) ||
-        html.match(/<meta\s+itemprop=["']name["']\s+content=["']([^"']+)["']/i) ||
-        html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (!m) throw new Error('no title tag');
-      var t = decodeEntities(m[1])
-        .replace(/\s*-\s*YouTube\s*$/i, '')
-        .replace(/\s*\|\s*YouTube\s*$/i, '')
-        .trim();
-      if (!t || t.length > 200 || /^youtube$/i.test(t)) throw new Error('bad title');
-      return t;
-    });
-  }
-
-  function fetchTitle(p) {
-    return tryOembed(p.listId)
-      .catch(function () { return tryNoembed(p.listId); })
-      .catch(function () {
-        return tryPageViaProxy(p.listId, function (u) {
-          return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u);
-        });
-      })
-      .catch(function () {
-        return tryPageViaProxy(p.listId, function (u) {
-          return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u);
-        });
-      })
-      .catch(function () { return null; });
-  }
-
-  PLAYLISTS.forEach(function (p) {
-    fetchTitle(p).then(function (title) {
-      if (title) {
-        p.title = title;
-        render();
-      }
-    });
-  });
 })();
 
 applyLang(currentLang());
