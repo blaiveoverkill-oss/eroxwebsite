@@ -78,7 +78,6 @@ a { color: inherit; }
 .music-btn.playing .icon-play { display: none; }
 .music-btn.playing .icon-pause { display: block; }
 
-/* === Icon buttons: HOVER INVERTS FOREGROUND & BACKGROUND === */
 .icon-btn:hover,
 .icon-btn:focus-visible,
 .icon-btn.fluid-btn[aria-pressed="true"]:hover,
@@ -147,7 +146,6 @@ html[dir="rtl"] .link::after { right: auto; left: 4px; }
 .link:hover .link-title { color: var(--accent); }
 .link-desc { display: block; margin-top: 3px; font-size: 0.83rem; line-height: 1.5; color: var(--muted); }
 
-/* ---------- Latest YouTube videos ---------- */
 .videos { margin-top: 52px; }
 .videos-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .videos-title { margin: 0; font-family: var(--serif); font-size: 1.08rem; font-weight: 400; letter-spacing: -0.01em; color: var(--text); }
@@ -190,7 +188,6 @@ html[dir="rtl"] .link::after { right: auto; left: 4px; }
 .videos-fallback:hover { border-color: var(--accent); transform: translateY(-2px); }
 .videos-fallback svg { width: 20px; height: 20px; flex: none; fill: var(--accent); }
 
-/* ---------- YouTube playlists ---------- */
 .playlists { margin-top: 52px; }
 .playlists-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .playlists-title { margin: 0; font-family: var(--serif); font-size: 1.08rem; font-weight: 400; letter-spacing: -0.01em; color: var(--text); }
@@ -202,7 +199,6 @@ html[dir="rtl"] .link::after { right: auto; left: 4px; }
 .playlists-more:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .playlists-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 
-/* Playlist cards mirror the video card layout: thumbnail + name */
 .playlist-card { display: block; text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }
 .playlist-thumb {
   display: block; position: relative; aspect-ratio: 16 / 9; overflow: hidden;
@@ -210,10 +206,6 @@ html[dir="rtl"] .link::after { right: auto; left: 4px; }
 }
 .playlist-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
 .playlist-card:hover .playlist-thumb img { transform: scale(1.05); }
-/* Placeholder used only for the static fallback markup */
-.playlist-thumb-empty { display: grid; place-items: center; background: linear-gradient(135deg, var(--accent-soft), transparent); }
-.playlist-thumb-empty > svg { width: 34px; height: 34px; fill: var(--faint); opacity: 0.55; }
-/* Small "playlist" badge overlay on the bottom-right of the thumbnail */
 .playlist-badge {
   position: absolute; bottom: 8px; right: 8px;
   width: 22px; height: 22px;
@@ -240,7 +232,6 @@ html[dir="rtl"] .playlist-badge { right: auto; left: 8px; }
   color: var(--muted); background-color: transparent;
   transition: color 0.22s ease, background-color 0.22s ease, transform 0.25s ease;
 }
-/* === Social icons: HOVER INVERTS FOREGROUND & BACKGROUND === */
 .socials a:hover,
 .socials a:focus-visible {
   color: var(--bg) !important;
@@ -320,7 +311,6 @@ html[dir="rtl"] .url { text-align: right; }
   }
   .topbar { grid-area: top; margin-bottom: 56px; position: relative; z-index: 20; }
 
-  /* === Sticky left column — stays in place while the right side scrolls === */
   .intro {
     grid-area: intro;
     grid-row: 2 / 6;
@@ -659,27 +649,7 @@ html[dir="rtl"] .url { text-align: right; }
       <a class="playlists-more" href="https://www.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/playlists"
          target="_blank" rel="noopener noreferrer" data-i18n="playlists_more">View all</a>
     </div>
-    <!-- Dynamic playlists will be rendered here. Static fallback is shown until JS loads. -->
-    <div class="playlists-grid" id="playlistsGrid">
-      <a class="playlist-card" href="https://www.youtube.com/watch?v=hIRqQ-UG0ZU&list=PLXBYaKrGn-MQ" target="_blank" rel="noopener noreferrer">
-        <span class="playlist-thumb playlist-thumb-empty">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-playlist"/></svg>
-        </span>
-        <span class="playlist-name" data-i18n="playlists_title">Playlists</span>
-      </a>
-      <a class="playlist-card" href="https://www.youtube.com/watch?v=TmrEuNjVpyw&list=PLI-jPcEHcEao" target="_blank" rel="noopener noreferrer">
-        <span class="playlist-thumb playlist-thumb-empty">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-playlist"/></svg>
-        </span>
-        <span class="playlist-name" data-i18n="playlists_title">Playlists</span>
-      </a>
-      <a class="playlist-card" href="https://www.youtube.com/watch?v=ud7gb8baqbw&list=PLD-FRzVfHjBM&pp=0gcJCbwFa94AFGB0" target="_blank" rel="noopener noreferrer">
-        <span class="playlist-thumb playlist-thumb-empty">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-playlist"/></svg>
-        </span>
-        <span class="playlist-name" data-i18n="playlists_title">Playlists</span>
-      </a>
-    </div>
+    <div class="playlists-grid" id="playlistsGrid"></div>
   </section>
 
   <footer class="footer">
@@ -696,7 +666,7 @@ html[dir="rtl"] .url { text-align: right; }
       <a href="https://x.com/EroxVilumex" target="_blank" rel="noopener noreferrer" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></a>
       <a href="https://www.reddit.com/user/EroxVilumex/" target="_blank" rel="noopener noreferrer" aria-label="Reddit"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reddit"/></svg></a>
     </div>
-    <p class="colophon" data-i18n="colophon">Updated whenever a new run finishes.</p>
+    <p class="colophon" data-i18n="colophon">work in progress</p>
   </footer>
 
 </main>
@@ -737,7 +707,7 @@ var T = {
     videos_error: "Open the channel on YouTube",
     playlists_title: "Playlists",
     playlists_more: "View all",
-    colophon: "Updated whenever a new run finishes.",
+    colophon: "work in progress",
     langLabel: "\u0639",
     langAria: "Switch to Arabic",
     themeAria: "Switch theme",
@@ -786,7 +756,7 @@ var T = {
     videos_error: "افتح القناة على يوتيوب",
     playlists_title: "قوائم التشغيل",
     playlists_more: "عرض الكل",
-    colophon: "\u064a\u064f\u062d\u062f\u064e\u0651\u062b \u0639\u0646\u062f \u0627\u0646\u062a\u0647\u0627\u0621 \u0643\u0644 \u062c\u0648\u0644\u0629 \u062c\u062f\u064a\u062f\u0629.",
+    colophon: "قيد العمل",
     langLabel: "EN",
     langAria: "\u0627\u0644\u062a\u0628\u062f\u064a\u0644 \u0625\u0644\u0649 \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629",
     themeAria: "\u062a\u063a\u064a\u064a\u0631 \u0627\u0644\u0645\u0638\u0647\u0631",
@@ -918,7 +888,7 @@ document.addEventListener('toggle', function (e) {
 }, true);
 
 /* ==========================================================================
-   Fluid background — original working 2D blob version
+   Fluid background — 2D blob animation
    ========================================================================== */
 (function () {
   var canvas = document.getElementById('fluid');
@@ -1260,111 +1230,38 @@ document.addEventListener('toggle', function (e) {
 })();
 
 /* ==========================================================================
-   YouTube playlists — fetches real title & thumbnail from YouTube.
-   Uses the playlist page HTML via a CORS proxy and parses the
-   ytInitialData JSON to extract the playlist title and thumbnail.
+   Playlists — three fixed playlists. Thumbnail comes straight from the
+   first video ID (always available, no network needed). Title is fetched
+   from the YouTube playlist page via a CORS proxy and falls back to a
+   sensible default if the fetch fails.
    ========================================================================== */
 (function () {
-  var CHANNEL_ID = 'UCoDs7EzXlKTj_py9_Glq9ZQ';
+  var grid = document.getElementById('playlistsGrid');
+  if (!grid) return;
+
   var PLAYLISTS = [
     {
-      id: 'PLXBYaKrGn-MQ',
+      videoId: 'hIRqQ-UG0ZU',
+      listId: 'PLXBYaKrGn-MQ',
       url: 'https://www.youtube.com/watch?v=hIRqQ-UG0ZU&list=PLXBYaKrGn-MQ',
-      // Fallback thumbnail from the first video
-      fallbackThumb: 'https://i.ytimg.com/vi/hIRqQ-UG0ZU/hqdefault.jpg',
       fallbackTitle: 'YouTube playlists'
     },
     {
-      id: 'PLI-jPcEHcEao',
+      videoId: 'TmrEuNjVpyw',
+      listId: 'PLI-jPcEHcEao',
       url: 'https://www.youtube.com/watch?v=TmrEuNjVpyw&list=PLI-jPcEHcEao',
-      fallbackThumb: 'https://i.ytimg.com/vi/TmrEuNjVpyw/hqdefault.jpg',
       fallbackTitle: 'Gaming series'
     },
     {
-      id: 'PLD-FRzVfHjBM',
+      videoId: 'ud7gb8baqbw',
+      listId: 'PLD-FRzVfHjBM',
       url: 'https://www.youtube.com/watch?v=ud7gb8baqbw&list=PLD-FRzVfHjBM&pp=0gcJCbwFa94AFGB0',
-      fallbackThumb: 'https://i.ytimg.com/vi/ud7gb8baqbw/hqdefault.jpg',
       fallbackTitle: 'All collections'
     }
   ];
 
-  var grid = document.getElementById('playlistsGrid');
-  if (!grid) return;
-
-  function fetchTimeout(url, ms) {
-    return new Promise(function (resolve, reject) {
-      var controller = null, timer = null;
-      try {
-        controller = new AbortController();
-        timer = setTimeout(function () {
-          try { controller.abort(); } catch (e) {}
-          reject(new Error('timeout'));
-        }, ms);
-      } catch (e) {}
-      var opts = { credentials: 'omit', mode: 'cors' };
-      if (controller) opts.signal = controller.signal;
-      fetch(url, opts).then(function (r) {
-        if (timer) clearTimeout(timer);
-        if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
-        resolve(r.text());
-      }, function (err) {
-        if (timer) clearTimeout(timer);
-        reject(err);
-      });
-    });
-  }
-
-  // Try multiple CORS proxies to fetch the playlist page HTML.
-  var PROXIES = [
-    function (url) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url); },
-    function (url) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url); },
-    function (url) { return 'https://api.allorigins.win/get?url=' + encodeURIComponent(url); }
-  ];
-
-  function extractPlaylistMeta(html, fallback) {
-    if (!html || typeof html !== 'string') return null;
-    // Look for ytInitialData JSON
-    var m = html.match(/var ytInitialData = ({.*?});/s) ||
-            html.match(/window\["ytInitialData"\] = ({.*?});/s) ||
-            html.match(/ytInitialData"\]\s*=\s*({.*?});/s);
-    if (!m) return null;
-    var json;
-    try { json = JSON.parse(m[1]); } catch (e) { return null; }
-
-    // Navigate the JSON structure to find playlist title and thumbnail.
-    // Path: header.playlistHeaderRenderer.title.simpleText
-    //       header.playlistHeaderRenderer.playlistHeaderBanner.heroPlaylistThumbnailRenderer.thumbnail.thumbnails
-    try {
-      var header = json.header.playlistHeaderRenderer;
-      var title = header.title.simpleText ||
-                  header.title.runs[0].text ||
-                  fallback.fallbackTitle;
-      var thumbs = header.playlistHeaderBanner.heroPlaylistThumbnailRenderer.thumbnail.thumbnails;
-      var thumb = thumbs && thumbs.length ? thumbs[thumbs.length - 1].url : fallback.fallbackThumb;
-      return { title: title, thumb: thumb };
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function fetchPlaylistMeta(item) {
-    var pageUrl = 'https://www.youtube.com/playlist?list=' + item.id;
-    var chain = Promise.reject();
-    for (var i = 0; i < PROXIES.length; i++) {
-      (function (proxyFn) {
-        chain = chain.catch(function () {
-          return fetchTimeout(proxyFn(pageUrl), 9000).then(function (html) {
-            var meta = extractPlaylistMeta(html, item);
-            if (!meta) throw new Error('no meta');
-            return meta;
-          });
-        });
-      })(PROXIES[i]);
-    }
-    return chain.catch(function () {
-      // All proxies failed — use fallback data.
-      return { title: item.fallbackTitle, thumb: item.fallbackThumb };
-    });
+  function thumbFor(vid) {
+    return 'https://i.ytimg.com/vi/' + vid + '/hqdefault.jpg';
   }
 
   function mk(tag, cls, text) {
@@ -1374,10 +1271,10 @@ document.addEventListener('toggle', function (e) {
     return n;
   }
 
-  window.renderPlaylists = function (items) {
+  function render() {
     grid.innerHTML = '';
-    for (var i = 0; i < items.length; i++) {
-      var p = items[i];
+    for (var i = 0; i < PLAYLISTS.length; i++) {
+      var p = PLAYLISTS[i];
       var a = mk('a', 'playlist-card');
       a.href = p.url;
       a.target = '_blank';
@@ -1388,7 +1285,7 @@ document.addEventListener('toggle', function (e) {
       img.loading = 'lazy';
       img.alt = '';
       img.referrerPolicy = 'no-referrer';
-      img.src = p.thumb;
+      img.src = p.thumb || thumbFor(p.videoId);
       img.addEventListener('error', function () {
         if (this.dataset.retried) return;
         this.dataset.retried = '1';
@@ -1397,35 +1294,72 @@ document.addEventListener('toggle', function (e) {
       thumbWrap.appendChild(img);
 
       var badge = mk('span', 'playlist-badge');
-      badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-playlist"/></svg>';
+      badge.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-playlist"></use></svg>';
       thumbWrap.appendChild(badge);
 
       a.appendChild(thumbWrap);
-      a.appendChild(mk('span', 'playlist-name', p.title));
+      a.appendChild(mk('span', 'playlist-name', p.title || p.fallbackTitle));
       grid.appendChild(a);
     }
-  };
+  }
 
-  // Fetch all playlists in parallel.
-  Promise.all(PLAYLISTS.map(fetchPlaylistMeta))
-    .then(function (results) {
-      var items = results.map(function (meta, idx) {
-        return {
-          url: PLAYLISTS[idx].url,
-          title: meta.title || PLAYLISTS[idx].fallbackTitle,
-          thumb: meta.thumb || PLAYLISTS[idx].fallbackThumb
-        };
+  window.renderPlaylists = render;
+
+  // Render immediately with fallback titles + reliable thumbnails.
+  render();
+
+  // Now try to enrich with the real playlist title from YouTube (async).
+  var PROXIES = [
+    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
+  ];
+
+  function fetchTitle(listId, cb) {
+    var pageUrl = 'https://www.youtube.com/playlist?list=' + listId;
+    var idx = 0;
+    function tryNext() {
+      if (idx >= PROXIES.length) { cb(null); return; }
+      var proxy = PROXIES[idx++];
+      var controller = null;
+      var timer = null;
+      try {
+        controller = new AbortController();
+        timer = setTimeout(function () {
+          try { controller.abort(); } catch (e) {}
+        }, 8000);
+      } catch (e) {}
+      var opts = { credentials: 'omit', mode: 'cors' };
+      if (controller) opts.signal = controller.signal;
+
+      fetch(proxy(pageUrl), opts).then(function (r) {
+        if (timer) clearTimeout(timer);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      }).then(function (html) {
+        var m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+        if (!m) { tryNext(); return; }
+        var title = m[1].replace(/\s*-\s*YouTube\s*$/i, '').trim();
+        if (!title) { tryNext(); return; }
+        cb(title);
+      }).catch(function () {
+        if (timer) clearTimeout(timer);
+        tryNext();
       });
-      window.renderPlaylists(items);
-    })
-    .catch(function () {
-      // Ultimate fallback: static cards already in the HTML are fine,
-      // but we can also render with fallback data.
-      var items = PLAYLISTS.map(function (item) {
-        return { url: item.url, title: item.fallbackTitle, thumb: item.fallbackThumb };
-      });
-      window.renderPlaylists(items);
+    }
+    tryNext();
+  }
+
+  // Fetch all titles in parallel; re-render on any success.
+  var remaining = PLAYLISTS.length;
+  PLAYLISTS.forEach(function (p) {
+    fetchTitle(p.listId, function (title) {
+      if (title) {
+        p.title = title;
+        render();
+      }
+      remaining--;
     });
+  });
 })();
 
 applyLang(currentLang());
