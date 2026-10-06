@@ -7,12 +7,26 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Erox Vilumex" />
 <meta property="og:description" content="Gaming videos, live streams on Twitch and Kick, and a Steam Family Sharing group." />
-<meta name="twitter:card" content="summary" />
+<meta property="og:url" content="https://eroxvilumex.duckdns.org/" />
+<meta property="og:image" content="https://eroxvilumex.duckdns.org/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Erox Vilumex - gaming videos, live streams and Steam Family Sharing" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Erox Vilumex" />
+<meta name="twitter:description" content="Gaming videos, live streams on Twitch and Kick, and a Steam Family Sharing group." />
+<meta name="twitter:image" content="https://eroxvilumex.duckdns.org/og-image.png" />
+<link rel="canonical" href="https://eroxvilumex.duckdns.org/" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Erox" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c3aed'/%3E%3Ctext x='50' y='66' font-family='Georgia,serif' font-size='46' fill='white' text-anchor='middle'%3EEV%3C/text%3E%3C/svg%3E" />
 <meta name="theme-color" content="#faf8ff" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#0f0d17" media="(prefers-color-scheme: dark)" />
 <title>Erox Vilumex</title>
-<meta name="build" content="2026-10-05-music-webgl-v3" />
+<meta name="build" content="2026-10-06-v5" />
 <link rel="preconnect" href="https://i.ytimg.com" />
 <link rel="preconnect" href="https://api.rss2json.com" crossorigin />
 
@@ -24,7 +38,8 @@
     var d = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.setAttribute('data-theme', d ? 'dark' : 'light');
     if (localStorage.getItem('fluid') === 'off') document.documentElement.classList.add('fluid-off');
-    var l = localStorage.getItem('lang') === 'ar' ? 'ar' : 'en';
+    var sl = localStorage.getItem('lang');
+    var l = sl ? (sl === 'ar' ? 'ar' : 'en') : (/^ar\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'ar' : 'en');
     document.documentElement.setAttribute('lang', l);
     document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr');
   } catch (e) {}
@@ -312,7 +327,7 @@ html[dir="rtl"] .url { text-align: right; }
     max-width: 1040px;
     display: grid;
     grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-    grid-template-areas: "top top" "intro links" ". videos" ". playlists" ". foot";
+    grid-template-areas: "top top" "intro links" ". videos" ". playlists" ". steam" ". foot";
     column-gap: 88px;
     align-items: start;
   }
@@ -320,7 +335,7 @@ html[dir="rtl"] .url { text-align: right; }
 
   .intro {
     grid-area: intro;
-    grid-row: 2 / 6;
+    grid-row: 2 / 7;
     position: sticky;
     top: 56px;
     margin-bottom: 0;
@@ -331,6 +346,7 @@ html[dir="rtl"] .url { text-align: right; }
   .links { grid-area: links; grid-column: 2; }
   .videos { grid-area: videos; grid-column: 2; margin-top: 84px; }
   .playlists { grid-area: playlists; }
+  .steam { grid-area: steam; grid-column: 2; }
   .footer { grid-area: foot; grid-column: 2; margin-top: 64px; flex-direction: row; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--line); }
   .avatar-wrap { width: 112px; height: 112px; }
   .name { font-size: 2.6rem; }
@@ -476,6 +492,63 @@ html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
   .ctrl-row { justify-content: center; gap: 12px; }
   .track { padding: 12px 8px; }
 }
+
+/* ---- LIVE badges ---- */
+.live-pill {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; padding: 3px 10px 3px 8px; border-radius: 999px;
+  background: #e5253d; color: #fff; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+}
+.live-pill[hidden] { display: none; }
+.live-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: livePulse 1.4s ease-in-out infinite; }
+html[dir="rtl"] .live-pill { letter-spacing: 0; padding: 3px 8px 3px 10px; }
+@keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+#liveBox:empty { display: none; }
+.live-banner {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 12px 14px; border-radius: 14px;
+  border: 1px solid rgba(229, 37, 61, 0.4); background: linear-gradient(135deg, rgba(229, 37, 61, 0.14), rgba(229, 37, 61, 0.04));
+  color: var(--text); text-decoration: none; transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.live-banner:hover { transform: translateY(-2px); border-color: #e5253d; }
+.live-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.live-where { font-size: 0.88rem; font-weight: 600; }
+.live-title { font-size: 0.78rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Steam Family Sharing section ---- */
+.steam { margin-top: 52px; }
+.steam-card {
+  padding: 22px 20px; border: 1px solid var(--line); border-radius: 18px;
+  background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.steam-title { margin: 0; font-family: var(--serif); font-size: 1.08rem; font-weight: 400; letter-spacing: -0.01em; }
+.steam-intro { margin: 8px 0 0; font-size: 0.9rem; color: var(--muted); }
+.steam-steps { list-style: none; counter-reset: st; margin: 16px 0 18px; padding: 0; display: grid; gap: 12px; }
+.steam-steps li { counter-increment: st; display: flex; gap: 12px; align-items: flex-start; font-size: 0.9rem; color: var(--text); }
+.steam-steps li::before {
+  content: counter(st); flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent); font-size: 0.75rem; font-weight: 600;
+}
+
+/* ---- mini now-playing pill ---- */
+.mini {
+  position: fixed; z-index: 40; inset-inline: 0; margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: min(420px, calc(100% - 28px)); display: flex; align-items: center; gap: 2px;
+  padding: 5px 8px; padding-inline-start: 16px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 14px 34px -14px rgba(30, 10, 70, 0.5); animation: miniIn 0.3s ease both;
+}
+.mini[hidden] { display: none; }
+@keyframes miniIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.mini-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 9px 0; border: 0;
+  background: transparent; color: var(--text); font: 600 0.85rem var(--sans); text-align: start; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mini-title #miniName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini.is-playing .eq { display: flex; }
+.mini .i-pause { display: none; }
+.mini.is-playing .i-play { display: none; }
+.mini.is-playing .i-pause { display: block; }
+body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
@@ -581,6 +654,8 @@ html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
 
   <nav class="links">
 
+    <div id="liveBox"></div>
+
     <details class="item">
       <summary>
         <span class="link" style="--i:0">
@@ -589,6 +664,7 @@ html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
         <span class="link-title" data-i18n="yt_title">YouTube &mdash; all videos</span>
         <span class="link-desc" data-i18n="yt_desc">Gameplay videos with funny commentary, plus full playthroughs.</span>
       </span>
+      <span class="live-pill" data-live="youtube" data-i18n="live" hidden>LIVE</span>
       </span>
       </summary>
       <div class="panel">
@@ -684,6 +760,7 @@ html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
         <span class="link-title" data-i18n="kick_title">Kick</span>
         <span class="link-desc" data-i18n="kick_desc">erox-vilumex &mdash; live streams and full sessions on Kick.</span>
       </span>
+      <span class="live-pill" data-live="kick" data-i18n="live" hidden>LIVE</span>
       </span>
       </summary>
       <div class="panel">
@@ -703,6 +780,7 @@ html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
         <span class="link-title" data-i18n="twitch_title">Twitch</span>
         <span class="link-desc" data-i18n="twitch_desc">@eroxvilumex &mdash; live gameplay and chat with viewers.</span>
       </span>
+      <span class="live-pill" data-live="twitch" data-i18n="live" hidden>LIVE</span>
       </span>
       </summary>
       <div class="panel">
@@ -811,6 +889,22 @@ html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
     <div class="playlists-grid" id="playlistsGrid"></div>
   </section>
 
+  <section class="steam" aria-labelledby="steamTitle">
+    <div class="steam-card">
+      <h2 class="steam-title" id="steamTitle" data-i18n="steam_sec_title">Steam Family Sharing</h2>
+      <p class="steam-intro" data-i18n="steam_sec_intro">Short on games? Join the sharing group and play from my library.</p>
+      <ol class="steam-steps">
+        <li data-i18n="steam_step1">Send me a friend request on Steam.</li>
+        <li data-i18n="steam_step2">Message me that you want to join the sharing group.</li>
+        <li data-i18n="steam_step3">Accept the family invite, then pick a game from the shared library.</li>
+      </ol>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://steamcommunity.com/id/eroxvilumex" target="_blank" rel="noopener noreferrer" data-i18n="steam_cta">Add me on Steam</a>
+        <a class="btn" href="https://discord.gg/SJt67SY9df" target="_blank" rel="noopener noreferrer" data-i18n="steam_cta2">Ask on Discord</a>
+      </div>
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="socials">
       <a href="https://m.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/videos" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-yt"/></svg></a>
@@ -825,15 +919,32 @@ html[dir="rtl"] .video-new { left: auto; right: 8px; letter-spacing: 0; }
       <a href="https://x.com/EroxVilumex" target="_blank" rel="noopener noreferrer" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></a>
       <a href="https://www.reddit.com/user/EroxVilumex/" target="_blank" rel="noopener noreferrer" aria-label="Reddit"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reddit"/></svg></a>
     </div>
-    <p class="colophon"><span data-i18n="colophon">work in progress</span> &middot; v3</p>
+    <p class="colophon"><span data-i18n="colophon">work in progress</span> &middot; v5</p>
   </footer>
 
 </main>
 
 <div id="toast" role="status" aria-live="polite"></div>
+<div class="mini" id="miniPlayer" hidden>
+  <button class="mini-title" id="miniOpen" type="button">
+    <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span id="miniName"></span>
+  </button>
+  <button class="ctrl" id="miniPlay" type="button">
+    <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+    <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+  </button>
+  <button class="ctrl" id="miniNext" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+</div>
 <audio id="bgMusic" preload="none"></audio>
 
 <script>
+/* ==========================================================================
+   SITE CONFIG — fill these in after setting things up (leave '' to skip)
+   ========================================================================== */
+var WORKER_URL = '';     /* your Cloudflare Worker URL -> LIVE badges + most reliable video feed */
+var GOATCOUNTER = '';    /* your GoatCounter code (the part before .goatcounter.com) -> link-click stats */
+
 var T = {
   en: {
     pageTitle: "Erox Vilumex",
@@ -878,10 +989,22 @@ var T = {
     music_shuffle: "Shuffle",
     music_volume: "Volume",
     music_seek: "Seek",
+    live: "LIVE",
+    live_on: "Live now on",
+    name_youtube: "YouTube",
+    name_twitch: "Twitch",
+    name_kick: "Kick",
+    steam_sec_title: "Steam Family Sharing",
+    steam_sec_intro: "Short on games? Join the sharing group and play from my library.",
+    steam_step1: "Send me a friend request on Steam.",
+    steam_step2: "Message me that you want to join the sharing group.",
+    steam_step3: "Accept the family invite, then pick a game from the shared library.",
+    steam_cta: "Add me on Steam",
+    steam_cta2: "Ask on Discord",
     playlists_title: "Playlists",
     playlists_more: "View all",
-    playlist_1: "Full games playthrough",
-    playlist_2: "Classic flash games",
+    playlist_1: "Full games in one live stream",
+    playlist_2: "Flash game series from the good old days",
     playlist_3: "Idiot plays Doki Doki Literature Club \u2014 full series with Arabic translation",
     colophon: "work in progress",
     langLabel: "\u0639",
@@ -943,10 +1066,22 @@ var T = {
     music_shuffle: "عشوائي",
     music_volume: "الصوت",
     music_seek: "تقديم",
+    live: "مباشر",
+    live_on: "بث مباشر الآن على",
+    name_youtube: "يوتيوب",
+    name_twitch: "تويتش",
+    name_kick: "كيك",
+    steam_sec_title: "مشاركة عائلة ستيم",
+    steam_sec_intro: "تفتقر إلى الألعاب؟ انضم إلى المجموعة والعب من مكتبتي.",
+    steam_step1: "أرسل لي طلب صداقة على ستيم.",
+    steam_step2: "راسلني وأخبرني أنك تريد الانضمام إلى مجموعة المشاركة.",
+    steam_step3: "اقبل دعوة العائلة ثم اختر لعبة من المكتبة المشتركة.",
+    steam_cta: "أضفني على ستيم",
+    steam_cta2: "اسأل على ديسكورد",
     playlists_title: "قوائم التشغيل",
     playlists_more: "عرض الكل",
-    playlist_1: "\u0627\u0644\u0639\u0627\u0628 \u0643\u0627\u0645\u0644\u0629 \u0641\u064a \u0644\u0627\u064a\u0641 \u0648\u0627\u062d\u062f",
-    playlist_2: "\u0627\u0644\u0639\u0627\u0628 \u0641\u0644\u0627\u0634 \u0645\u0646 \u0627\u0644\u0632\u0645\u0646 \u0627\u0644\u062c\u0645\u064a\u0644",
+    playlist_1: "ألعاب كاملة في لايف واحد",
+    playlist_2: "سلاسل ألعاب فلاش من الزمن الجميل",
     playlist_3: "\u0627\u062d\u0645\u0642 \u064a\u0644\u0639\u0628 \u0633\u0644\u0633\u0644\u0629 doki doki literature club \u0643\u0627\u0645\u0644\u0629 \u0648\u0645\u0639\u0631\u0628\u0629",
     colophon: "قيد العمل",
     langLabel: "EN",
@@ -1000,6 +1135,7 @@ function applyLang(l) {
   if (window.renderVideos) window.renderVideos();
   if (window.renderPlaylists) window.renderPlaylists();
   if (window.renderMusic) window.renderMusic();
+  if (window.renderLive) window.renderLive();
 }
 
 function applyThemeColor() {
@@ -1434,8 +1570,6 @@ document.addEventListener('toggle', function (e) {
     }
   ];
 
-  /* Optional: paste your Cloudflare Worker URL here (see instructions) for the most reliable updates. */
-  var WORKER_URL = '';
   if (WORKER_URL) {
     SOURCES.unshift(function () {
       return fetchTimeout(WORKER_URL + '?channel_id=' + CHANNEL_ID, 9000, false).then(parseXml);
@@ -1605,17 +1739,17 @@ document.addEventListener('toggle', function (e) {
   var PLAYLISTS = [
     {
       videoId: 'hIRqQ-UG0ZU',
-      url: 'https://www.youtube.com/watch?v=hIRqQ-UG0ZU&list=PLXBYaKrGn-MQ',
+      url: 'https://www.youtube.com/playlist?list=PLXBYaKrGn-MQ',
       key: 'playlist_1'
     },
     {
       videoId: 'TmrEuNjVpyw',
-      url: 'https://www.youtube.com/watch?v=TmrEuNjVpyw&list=PLI-jPcEHcEao',
+      url: 'https://www.youtube.com/playlist?list=PLI-jPcEHcEao',
       key: 'playlist_2'
     },
     {
       videoId: 'ud7gb8baqbw',
-      url: 'https://www.youtube.com/watch?v=ud7gb8baqbw&list=PLD-FRzVfHjBM&pp=0gcJCbwFa94AFGB0',
+      url: 'https://www.youtube.com/playlist?list=PLD-FRzVfHjBM',
       key: 'playlist_3'
     }
   ];
@@ -1677,11 +1811,12 @@ document.addEventListener('toggle', function (e) {
    ========================================================================== */
 (function () {
   var MUSIC_FOLDER = 'music';
-  var MUSIC_REPO = '';            /* optional override, e.g. 'erox/my-site' (needed on custom domains) */
+  var MUSIC_REPO = 'edgydamien/eroxwebsite';   /* GitHub owner/repo that contains the music folder (works on any domain) */
+  var MUSIC_BRANCH = 'main';
   var EXT = /\.(opus|ogg|oga|mp3|m4a|aac|wav|flac|webm)$/i;
   var MIME = { opus: 'audio/ogg; codecs="opus"', ogg: 'audio/ogg', oga: 'audio/ogg', mp3: 'audio/mpeg',
                m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', flac: 'audio/flac', webm: 'audio/webm; codecs="opus"' };
-  var CACHE_KEY = 'music_tracks_v1', CACHE_MS = 10 * 60 * 1000;
+  var CACHE_KEY = 'music_tracks_v2', CACHE_MS = 10 * 60 * 1000;
 
   var btn = document.getElementById('musicToggle');
   var panel = document.getElementById('musicPanel');
@@ -1699,6 +1834,11 @@ document.addEventListener('toggle', function (e) {
   var bNext = document.getElementById('bNext');
   var bShuffle = document.getElementById('bShuffle');
   var vol = document.getElementById('vol');
+  var mini = document.getElementById('miniPlayer');
+  var miniName = document.getElementById('miniName');
+  var miniPlay = document.getElementById('miniPlay');
+  var miniNext = document.getElementById('miniNext');
+  var miniOpen = document.getElementById('miniOpen');
 
   var tracks = [], cur = -1, loaded = false, loading = false, seeking = false, msgKey = '';
   var shuffle = false, v0 = 0.8;
@@ -1784,7 +1924,10 @@ document.addEventListener('toggle', function (e) {
     tracks = [];
     for (var i = 0; i < entries.length; i++) {
       var f = entries[i].file;
-      tracks.push({ file: f, url: MUSIC_FOLDER + '/' + encodeURIComponent(f), title: entries[i].title || niceTitle(f), ok: canPlay(f) });
+      tracks.push({
+        file: f, url: MUSIC_FOLDER + '/' + encodeURIComponent(f), title: entries[i].title || niceTitle(f), ok: canPlay(f),
+        alt: repoGuess() ? 'https://raw.githubusercontent.com/' + repoGuess() + '/' + MUSIC_BRANCH + '/' + MUSIC_FOLDER + '/' + encodeURIComponent(f) : ''
+      });
     }
     loaded = tracks.length > 0;
     cur = -1;
@@ -1837,6 +1980,7 @@ document.addEventListener('toggle', function (e) {
     btn.classList.toggle('playing', playing);
     player.classList.toggle('is-playing', playing);
     bPlay.setAttribute('aria-label', tr(playing ? 'music_pause' : 'music_play'));
+    syncMini(playing);
     bShuffle.classList.toggle('on', shuffle);
     bShuffle.setAttribute('aria-pressed', shuffle ? 'true' : 'false');
     var items = list.children;
@@ -1847,6 +1991,16 @@ document.addEventListener('toggle', function (e) {
       if (i === cur) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
     }
     now.textContent = cur >= 0 ? tracks[cur].title : tr('music_pick');
+  }
+  function syncMini(playing) {
+    if (!mini) return;
+    var show = cur >= 0 && !!tracks[cur] && panel.hidden;
+    mini.hidden = !show;
+    document.body.classList.toggle('has-mini', show);
+    mini.classList.toggle('is-playing', playing);
+    if (tracks[cur]) miniName.textContent = tracks[cur].title;
+    miniPlay.setAttribute('aria-label', tr(playing ? 'music_pause' : 'music_play'));
+    miniNext.setAttribute('aria-label', tr('music_next'));
   }
   function progress() {
     var d = audio.duration;
@@ -1865,7 +2019,7 @@ document.addEventListener('toggle', function (e) {
     var t = tracks[i];
     if (!t) return;
     if (!t.ok) { toast('music_unsupported'); return; }
-    cur = i; seeking = false;
+    cur = i; seeking = false; t.retried = false;
     audio.src = t.url;
     progress();
     tryPlay();
@@ -1906,6 +2060,14 @@ document.addEventListener('toggle', function (e) {
     if (i === cur) toggle(); else play(i);
   });
   bPlay.addEventListener('click', toggle);
+  if (mini) {
+    miniPlay.addEventListener('click', toggle);
+    miniNext.addEventListener('click', next);
+    miniOpen.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      openMenu();
+    });
+  }
   bNext.addEventListener('click', next);
   bPrev.addEventListener('click', prev);
   bShuffle.addEventListener('click', function () {
@@ -1932,7 +2094,15 @@ document.addEventListener('toggle', function (e) {
   audio.addEventListener('ended', function () { sync(); next(); });
   audio.addEventListener('error', function () {
     if (cur < 0 || !tracks[cur]) return;
-    tracks[cur].ok = false;
+    var tk = tracks[cur];
+    if (tk.alt && !tk.retried) {
+      tk.retried = true;
+      var u = tk.url; tk.url = tk.alt; tk.alt = u;
+      audio.src = tk.url;
+      tryPlay();
+      return;
+    }
+    tk.ok = false;
     var items = list.children;
     if (items[cur]) items[cur].firstChild.classList.add('bad');
     toast('music_unsupported');
@@ -1950,8 +2120,8 @@ document.addEventListener('toggle', function (e) {
   }
 
   /* ---------- dropdown ---------- */
-  function openMenu() { panel.hidden = false; btn.setAttribute('aria-expanded', 'true'); load(); }
-  function closeMenu() { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+  function openMenu() { panel.hidden = false; btn.setAttribute('aria-expanded', 'true'); load(); sync(); }
+  function closeMenu() { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); sync(); }
   btn.addEventListener('click', function () { if (panel.hidden) openMenu(); else closeMenu(); });
   document.addEventListener('click', function (e) {
     if (!panel.hidden && !wrap.contains(e.target)) closeMenu();
@@ -1968,10 +2138,93 @@ document.addEventListener('toggle', function (e) {
 })();
 
 /* ==========================================================================
+   Live status (YouTube / Twitch / Kick) — needs WORKER_URL (see worker.js)
+   ========================================================================== */
+(function () {
+  var box = document.getElementById('liveBox');
+  if (!box || !WORKER_URL) return;
+  var ORDER = ['youtube', 'twitch', 'kick'];
+  var LINKS = {
+    youtube: 'https://www.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/live',
+    twitch: 'https://www.twitch.tv/eroxvilumex',
+    kick: 'https://kick.com/erox-vilumex'
+  };
+  var last = null, timer = 0;
+
+  function isLive(k) { return !!(last && last[k] && last[k].live); }
+
+  function render() {
+    var t = T[currentLang()], i;
+    var pills = document.querySelectorAll('.live-pill[data-live]');
+    for (i = 0; i < pills.length; i++) pills[i].hidden = !isLive(pills[i].getAttribute('data-live'));
+    box.innerHTML = '';
+    for (i = 0; i < ORDER.length; i++) {
+      var k = ORDER[i];
+      if (!isLive(k)) continue;
+      var d = last[k];
+      var a = document.createElement('a');
+      a.className = 'live-banner';
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.href = (k === 'youtube' && d.id) ? 'https://www.youtube.com/watch?v=' + encodeURIComponent(d.id) : LINKS[k];
+      var pill = document.createElement('span');
+      pill.className = 'live-pill';
+      pill.textContent = t.live;
+      var txt = document.createElement('span');
+      txt.className = 'live-text';
+      var where = document.createElement('span');
+      where.className = 'live-where';
+      where.textContent = t.live_on + ' ' + t['name_' + k];
+      txt.appendChild(where);
+      if (d.title) {
+        var ti = document.createElement('span');
+        ti.className = 'live-title';
+        ti.textContent = d.title;
+        txt.appendChild(ti);
+      }
+      a.appendChild(pill);
+      a.appendChild(txt);
+      box.appendChild(a);
+    }
+  }
+
+  function check() {
+    if (document.hidden) return;
+    fetch(WORKER_URL + (WORKER_URL.indexOf('?') < 0 ? '?' : '&') + 'live=1', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (data) { last = data; render(); })
+      .catch(function () {});
+  }
+
+  window.renderLive = render;
+  check();
+  timer = setInterval(check, 90 * 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+})();
+
+/* ==========================================================================
+   Optional privacy-friendly stats (GoatCounter) + outbound link clicks
+   ========================================================================== */
+(function () {
+  if (!GOATCOUNTER) return;
+  var sc = document.createElement('script');
+  sc.async = true;
+  sc.src = 'https://gc.zgo.at/count.js';
+  sc.setAttribute('data-goatcounter', 'https://' + GOATCOUNTER + '.goatcounter.com/count');
+  document.head.appendChild(sc);
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest ? e.target.closest('a[href^="http"]') : null;
+    if (!a || !window.goatcounter || !window.goatcounter.count) return;
+    var host = a.hostname.replace(/^www\./, '');
+    window.goatcounter.count({ path: 'click/' + host, title: 'Click: ' + host, event: true });
+  });
+})();
+
+/* ==========================================================================
    Scroll reveal for the lower sections
    ========================================================================== */
 (function () {
-  var els = document.querySelectorAll('.videos, .playlists, .footer');
+  var els = document.querySelectorAll('.videos, .playlists, .steam, .footer');
   var i;
   for (i = 0; i < els.length; i++) els[i].classList.add('reveal');
   if (!('IntersectionObserver' in window)) {
