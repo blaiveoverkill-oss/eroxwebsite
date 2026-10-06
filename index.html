@@ -37,6 +37,7 @@
 <meta name="build" content="2026-10-06-v7" />
 <link rel="preconnect" href="https://i.ytimg.com" />
 <link rel="preconnect" href="https://api.rss2json.com" crossorigin />
+<link rel="dns-prefetch" href="https://e.widgetbot.io" />
 
 <script>
 (function () {
@@ -335,7 +336,7 @@ html[dir="rtl"] .url { text-align: right; }
     max-width: 1040px;
     display: grid;
     grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-    grid-template-areas: "top top" "intro links" ". videos" ". playlists" ". steam" ". foot";
+    grid-template-areas: "top top" "intro links" ". videos" ". playlists" ". steam" ". chat" ". foot";
     column-gap: 88px;
     align-items: start;
   }
@@ -343,7 +344,7 @@ html[dir="rtl"] .url { text-align: right; }
 
   .intro {
     grid-area: intro;
-    grid-row: 2 / 7;
+    grid-row: 2 / 8;
     position: sticky;
     top: 56px;
     margin-bottom: 0;
@@ -355,6 +356,7 @@ html[dir="rtl"] .url { text-align: right; }
   .videos { grid-area: videos; grid-column: 2; margin-top: 84px; }
   .playlists { grid-area: playlists; }
   .steam { grid-area: steam; grid-column: 2; }
+  .chat { grid-area: chat; grid-column: 2; }
   .footer { grid-area: foot; grid-column: 2; margin-top: 64px; flex-direction: row; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--line); }
   .avatar-wrap { width: 112px; height: 112px; }
   .name { font-size: 2.6rem; }
@@ -535,6 +537,25 @@ html[dir="rtl"] .live-pill { letter-spacing: 0; padding: 3px 8px 3px 10px; }
   content: counter(st); flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
   background: var(--accent-soft); color: var(--accent); font-size: 0.75rem; font-weight: 600;
 }
+
+
+/* ---- Discord chat section ---- */
+.chat { margin-top: 52px; }
+.chat-card {
+  padding: 22px 20px; border: 1px solid var(--line); border-radius: 18px;
+  background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.chat-title { margin: 0; font-family: var(--serif); font-size: 1.08rem; font-weight: 400; letter-spacing: -0.01em; }
+.chat-intro { margin: 8px 0 0; font-size: 0.9rem; color: var(--muted); }
+.chat-frame {
+  position: relative; margin-top: 16px; height: 520px; max-height: 75vh;
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--accent-soft);
+}
+.chat-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+.chat-load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 16px; text-align: center; }
+.chat-load svg { width: 34px; height: 34px; fill: var(--accent); }
+.chat-frame.live .chat-load { display: none; }
+.chat .actions { margin-top: 16px; }
 
 /* ---- mini now-playing pill ---- */
 .mini {
@@ -938,6 +959,22 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
     </div>
   </section>
 
+  <section class="chat" id="chat" aria-labelledby="chatTitle" hidden>
+    <div class="chat-card">
+      <h2 class="chat-title" id="chatTitle" data-i18n="chat_title">Live chat</h2>
+      <p class="chat-intro" data-i18n="chat_intro">Chat with the community right here &mdash; messages sync with our Discord server.</p>
+      <div class="chat-frame" id="chatFrame">
+        <div class="chat-load">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-discord"/></svg>
+          <button class="btn btn-primary" id="chatLoad" type="button" data-i18n="chat_load">Load chat</button>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="https://discord.gg/SJt67SY9df" target="_blank" rel="noopener noreferrer" data-i18n="chat_join">Join the Discord server</a>
+      </div>
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="socials">
       <a href="https://m.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/videos" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-yt"/></svg></a>
@@ -981,6 +1018,8 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
    SITE CONFIG — fill these in after setting things up (leave '' to skip)
    ========================================================================== */
 var WORKER_URL = '';     /* your Cloudflare Worker URL -> LIVE badges + most reliable video feed */
+var DISCORD_SERVER_ID = '1320468321480609894';   /* Discord server ID -> in-page chat (WidgetBot) */
+var DISCORD_CHANNEL_ID = '1320468321480609898';   /* optional: a channel ID to open one channel directly (right-click channel -> Copy Channel ID) */
 var GOATCOUNTER = '';    /* your GoatCounter code (the part before .goatcounter.com) -> link-click stats */
 
 var T = {
@@ -1040,6 +1079,10 @@ var T = {
     steam_step3: "Accept the family invite, then pick a game from the shared library.",
     steam_cta: "Add me on Steam",
     steam_cta2: "Ask on Discord",
+    chat_title: "Live chat",
+    chat_intro: "Chat with the community right here \u2014 messages sync with our Discord server.",
+    chat_load: "Load chat",
+    chat_join: "Join the Discord server",
     playlists_title: "Playlists",
     playlists_more: "View all",
     playlist_1: "Full games in one live stream",
@@ -1118,6 +1161,10 @@ var T = {
     steam_step3: "اقبل دعوة العائلة ثم اختر لعبة من المكتبة المشتركة.",
     steam_cta: "أضفني على ستيم",
     steam_cta2: "اسأل على ديسكورد",
+    chat_title: "الدردشة المباشرة",
+    chat_intro: "تحدث مع المجتمع من هنا مباشرة — الرسائل متزامنة مع سيرفر ديسكورد.",
+    chat_load: "تحميل الدردشة",
+    chat_join: "انضم إلى سيرفر ديسكورد",
     playlists_title: "قوائم التشغيل",
     playlists_more: "عرض الكل",
     playlist_1: "ألعاب كاملة في لايف واحد",
@@ -2244,6 +2291,30 @@ document.addEventListener('toggle', function (e) {
 })();
 
 /* ==========================================================================
+   Discord chat (WidgetBot embed) — loads only when the visitor taps "Load chat"
+   Needs the WidgetBot bot added to the server (https://widgetbot.io)
+   ========================================================================== */
+(function () {
+  var sec = document.getElementById('chat');
+  var frame = document.getElementById('chatFrame');
+  var btn = document.getElementById('chatLoad');
+  if (!sec || !frame || !btn || !DISCORD_SERVER_ID) return;
+  sec.hidden = false;
+  btn.addEventListener('click', function () {
+    if (frame.classList.contains('live')) return;
+    var f = document.createElement('iframe');
+    f.src = 'https://e.widgetbot.io/channels/' + encodeURIComponent(DISCORD_SERVER_ID) +
+      (DISCORD_CHANNEL_ID ? '/' + encodeURIComponent(DISCORD_CHANNEL_ID) : '');
+    f.title = 'Discord chat';
+    f.loading = 'lazy';
+    f.setAttribute('allow', 'clipboard-write; fullscreen');
+    f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    frame.appendChild(f);
+    frame.classList.add('live');
+  });
+})();
+
+/* ==========================================================================
    Optional privacy-friendly stats (GoatCounter) + outbound link clicks
    ========================================================================== */
 (function () {
@@ -2306,7 +2377,7 @@ document.addEventListener('toggle', function (e) {
    Scroll reveal for the lower sections
    ========================================================================== */
 (function () {
-  var els = document.querySelectorAll('.videos, .playlists, .steam, .footer');
+  var els = document.querySelectorAll('.videos, .playlists, .steam, .chat, .footer');
   var i;
   for (i = 0; i < els.length; i++) els[i].classList.add('reveal');
   if (!('IntersectionObserver' in window)) {
