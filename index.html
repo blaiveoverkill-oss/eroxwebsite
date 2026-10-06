@@ -38,6 +38,7 @@
 <link rel="preconnect" href="https://i.ytimg.com" />
 <link rel="preconnect" href="https://api.rss2json.com" crossorigin />
 <link rel="dns-prefetch" href="https://e.widgetbot.io" />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
 <script>
 (function () {
@@ -548,13 +549,10 @@ html[dir="rtl"] .live-pill { letter-spacing: 0; padding: 3px 8px 3px 10px; }
 .chat-title { margin: 0; font-family: var(--serif); font-size: 1.08rem; font-weight: 400; letter-spacing: -0.01em; }
 .chat-intro { margin: 8px 0 0; font-size: 0.9rem; color: var(--muted); }
 .chat-frame {
-  position: relative; margin-top: 16px; height: 520px; max-height: 75vh;
+  position: relative; margin-top: 16px; height: 600px; max-height: 80vh;
   border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--accent-soft);
 }
-.chat-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
-.chat-load { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 16px; text-align: center; }
-.chat-load svg { width: 34px; height: 34px; fill: var(--accent); }
-.chat-frame.live .chat-load { display: none; }
+.chat-frame widgetbot, .chat-frame iframe { display: block; width: 100% !important; max-width: 100%; height: 100% !important; border: 0; }
 .chat .actions { margin-top: 16px; }
 
 /* ---- mini now-playing pill ---- */
@@ -959,15 +957,18 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
     </div>
   </section>
 
-  <section class="chat" id="chat" aria-labelledby="chatTitle" hidden>
+  <section class="chat" id="chat" aria-labelledby="chatTitle">
     <div class="chat-card">
       <h2 class="chat-title" id="chatTitle" data-i18n="chat_title">Live chat</h2>
       <p class="chat-intro" data-i18n="chat_intro">Chat with the community right here &mdash; messages sync with our Discord server.</p>
       <div class="chat-frame" id="chatFrame">
-        <div class="chat-load">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-discord"/></svg>
-          <button class="btn btn-primary" id="chatLoad" type="button" data-i18n="chat_load">Load chat</button>
-        </div>
+        <widgetbot
+          server="1320468321480609894"
+          channel="1557050056388124712"
+          width="800"
+          height="600"
+        ></widgetbot>
+        <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed"></script>
       </div>
       <div class="actions">
         <a class="btn" href="https://discord.gg/SJt67SY9df" target="_blank" rel="noopener noreferrer" data-i18n="chat_join">Join the Discord server</a>
@@ -1018,8 +1019,6 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
    SITE CONFIG — fill these in after setting things up (leave '' to skip)
    ========================================================================== */
 var WORKER_URL = '';     /* your Cloudflare Worker URL -> LIVE badges + most reliable video feed */
-var DISCORD_SERVER_ID = '1320468321480609894';   /* Discord server ID -> in-page chat (WidgetBot) */
-var DISCORD_CHANNEL_ID = '1320468321480609898';   /* optional: a channel ID to open one channel directly (right-click channel -> Copy Channel ID) */
 var GOATCOUNTER = '';    /* your GoatCounter code (the part before .goatcounter.com) -> link-click stats */
 
 var T = {
@@ -1081,7 +1080,6 @@ var T = {
     steam_cta2: "Ask on Discord",
     chat_title: "Live chat",
     chat_intro: "Chat with the community right here \u2014 messages sync with our Discord server.",
-    chat_load: "Load chat",
     chat_join: "Join the Discord server",
     playlists_title: "Playlists",
     playlists_more: "View all",
@@ -1163,7 +1161,6 @@ var T = {
     steam_cta2: "اسأل على ديسكورد",
     chat_title: "الدردشة المباشرة",
     chat_intro: "تحدث مع المجتمع من هنا مباشرة — الرسائل متزامنة مع سيرفر ديسكورد.",
-    chat_load: "تحميل الدردشة",
     chat_join: "انضم إلى سيرفر ديسكورد",
     playlists_title: "قوائم التشغيل",
     playlists_more: "عرض الكل",
@@ -2288,30 +2285,6 @@ document.addEventListener('toggle', function (e) {
   check();
   timer = setInterval(check, 90 * 1000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
-})();
-
-/* ==========================================================================
-   Discord chat (WidgetBot embed) — loads only when the visitor taps "Load chat"
-   Needs the WidgetBot bot added to the server (https://widgetbot.io)
-   ========================================================================== */
-(function () {
-  var sec = document.getElementById('chat');
-  var frame = document.getElementById('chatFrame');
-  var btn = document.getElementById('chatLoad');
-  if (!sec || !frame || !btn || !DISCORD_SERVER_ID) return;
-  sec.hidden = false;
-  btn.addEventListener('click', function () {
-    if (frame.classList.contains('live')) return;
-    var f = document.createElement('iframe');
-    f.src = 'https://e.widgetbot.io/channels/' + encodeURIComponent(DISCORD_SERVER_ID) +
-      (DISCORD_CHANNEL_ID ? '/' + encodeURIComponent(DISCORD_CHANNEL_ID) : '');
-    f.title = 'Discord chat';
-    f.loading = 'lazy';
-    f.setAttribute('allow', 'clipboard-write; fullscreen');
-    f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-    frame.appendChild(f);
-    frame.classList.add('live');
-  });
 })();
 
 /* ==========================================================================
