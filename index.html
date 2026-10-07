@@ -555,6 +555,34 @@ html[dir="rtl"] .live-pill { letter-spacing: 0; padding: 3px 8px 3px 10px; }
 .chat-frame widgetbot, .chat-frame iframe { display: block; width: 100% !important; max-width: 100%; height: 100% !important; border: 0; }
 .chat .actions { margin-top: 16px; }
 
+
+/* ---- visit stats (eye) dropdown ---- */
+.left-tools { display: flex; align-items: center; gap: 10px; }
+.stats-wrap { position: static; }
+.stats-panel {
+  position: absolute; top: calc(100% + 10px); inset-inline-start: 0; z-index: 30;
+  width: min(340px, calc(100vw - 48px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  padding: 16px 14px 14px; border: 1px solid var(--line); border-radius: 18px;
+  background: var(--panel); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 24px 50px -22px rgba(30, 10, 70, 0.45);
+}
+.stats-panel:not([hidden]) { animation: panelIn 0.22s ease both; }
+.stat-rows { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.stat-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 0.88rem; color: var(--muted); }
+.stat-row b { font-family: var(--serif); font-weight: 400; font-size: 1.05rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.stat-tabs { display: flex; gap: 6px; margin-top: 14px; }
+.stat-tab {
+  flex: 1; padding: 7px 8px; border: 1px solid var(--line); border-radius: 999px; background: transparent;
+  color: var(--muted); font: inherit; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.stat-tab[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.stat-chart { display: block; width: 100%; height: auto; margin-top: 10px; }
+.stat-chart text { fill: var(--muted); font-size: 8px; font-family: var(--sans); }
+.stat-chart .bar { fill: var(--accent); }
+.stat-chart .base { stroke: var(--line); stroke-width: 1; }
+.stat-note { margin: 6px 2px 0; font-size: 0.74rem; color: var(--muted); }
+
 /* ---- mini now-playing pill ---- */
 .mini {
   position: fixed; z-index: 40; inset-inline: 0; margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
@@ -629,6 +657,7 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 <main class="wrap">
 
   <div class="topbar">
+    <div class="left-tools">
     <div class="music-wrap">
       <button class="icon-btn music-btn" id="musicToggle" type="button"
               aria-haspopup="true" aria-expanded="false" aria-controls="musicPanel" aria-label="Music">
@@ -661,6 +690,34 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="stats-wrap">
+      <button class="icon-btn" id="statsToggle" type="button"
+              aria-haspopup="true" aria-expanded="false" aria-controls="statsPanel" aria-label="Visit stats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </button>
+
+      <div class="stats-panel" id="statsPanel" hidden>
+        <p class="music-title" data-i18n="stats_title">Site visits</p>
+        <ul class="stat-rows">
+          <li class="stat-row"><span data-i18n="stats_unique">Unique visits</span><b id="stUnique">&hellip;</b></li>
+          <li class="stat-row"><span data-i18n="stats_you">Your visits</span><b id="stYou">&hellip;</b></li>
+          <li class="stat-row"><span data-i18n="stats_total">Total visits</span><b id="stTotal">&hellip;</b></li>
+        </ul>
+        <div class="stat-tabs" role="group" aria-label="Range">
+          <button class="stat-tab" type="button" data-range="week" aria-pressed="true" data-i18n="stats_week">Weekly</button>
+          <button class="stat-tab" type="button" data-range="month" aria-pressed="false" data-i18n="stats_month">Monthly</button>
+          <button class="stat-tab" type="button" data-range="year" aria-pressed="false" data-i18n="stats_year">Yearly</button>
+        </div>
+        <svg class="stat-chart" id="statChart" viewBox="0 0 300 130" role="img" aria-label="Visits chart"></svg>
+        <p class="stat-note" id="statNote" hidden></p>
+      </div>
+    </div>
     </div>
 
     <div class="controls">
@@ -1019,6 +1076,7 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
    SITE CONFIG — fill these in after setting things up (leave '' to skip)
    ========================================================================== */
 var WORKER_URL = '';     /* your Cloudflare Worker URL -> LIVE badges + most reliable video feed */
+var STATS_NS = location.hostname || 'erox-site';   /* counter namespace for the visit stats (free abacus.jasoncameron.dev counter) */
 var GOATCOUNTER = '';    /* your GoatCounter code (the part before .goatcounter.com) -> link-click stats */
 
 var T = {
@@ -1078,6 +1136,15 @@ var T = {
     steam_step3: "Accept the family invite, then pick a game from the shared library.",
     steam_cta: "Add me on Steam",
     steam_cta2: "Ask on Discord",
+    stats_title: "Site visits",
+    stats_unique: "Unique visits",
+    stats_you: "Your visits",
+    stats_total: "Total visits",
+    stats_week: "Weekly",
+    stats_month: "Monthly",
+    stats_year: "Yearly",
+    stats_aria: "Visit stats",
+    stats_err: "Stats are unavailable right now.",
     chat_title: "Live chat",
     chat_intro: "Chat with the community right here \u2014 messages sync with our Discord server.",
     chat_join: "Join the Discord server",
@@ -1159,6 +1226,15 @@ var T = {
     steam_step3: "اقبل دعوة العائلة ثم اختر لعبة من المكتبة المشتركة.",
     steam_cta: "أضفني على ستيم",
     steam_cta2: "اسأل على ديسكورد",
+    stats_title: "زيارات الموقع",
+    stats_unique: "الزوار الفريدون",
+    stats_you: "زياراتك",
+    stats_total: "إجمالي الزيارات",
+    stats_week: "أسبوعي",
+    stats_month: "شهري",
+    stats_year: "سنوي",
+    stats_aria: "إحصائيات الزيارات",
+    stats_err: "الإحصائيات غير متاحة حالياً.",
     chat_title: "الدردشة المباشرة",
     chat_intro: "تحدث مع المجتمع من هنا مباشرة — الرسائل متزامنة مع سيرفر ديسكورد.",
     chat_join: "انضم إلى سيرفر ديسكورد",
@@ -1221,6 +1297,7 @@ function applyLang(l) {
   if (window.renderMusic) window.renderMusic();
   if (window.renderLive) window.renderLive();
   if (window.renderTop) window.renderTop();
+  if (window.renderStats) window.renderStats();
 }
 
 function applyThemeColor() {
@@ -2285,6 +2362,190 @@ document.addEventListener('toggle', function (e) {
   check();
   timer = setInterval(check, 90 * 1000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+})();
+
+/* ==========================================================================
+   Visit stats (eye button) — free abacus counter API, no backend needed
+   unique = once per browser, total = once per session, "yours" = this browser
+   ========================================================================== */
+(function () {
+  var API = 'https://abacus.jasoncameron.dev';
+  var btn = document.getElementById('statsToggle');
+  var panel = document.getElementById('statsPanel');
+  var chart = document.getElementById('statChart');
+  var note = document.getElementById('statNote');
+  if (!btn || !panel || !chart) return;
+
+  var range = 'week';
+  var cache = {};
+  var totals = null;
+  var loadedAt = 0;
+  var hitsDone = Promise.resolve();
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function dayKey(d) { return 'd-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); }
+  function monthKey(d) { return 'm-' + d.getFullYear() + pad(d.getMonth() + 1); }
+  function num(v) { return v == null ? '\u2014' : Number(v).toLocaleString('en'); }
+  function lang() { return typeof currentLang === 'function' ? currentLang() : 'en'; }
+
+  function call(kind, key) {
+    var url = API + '/' + kind + '/' + encodeURIComponent(STATS_NS) + '/' + encodeURIComponent(key);
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+    return fetch(url, { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) {
+        clearTimeout(timer);
+        if (r.status === 404) return 0;
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json().then(function (j) { return typeof j.value === 'number' ? j.value : 0; });
+      })
+      .catch(function () { clearTimeout(timer); return null; });
+  }
+
+  /* ---- record this visit (once per session / once per browser) ---- */
+  function record() {
+    var jobs = [];
+    var now = new Date();
+    try {
+      if (!sessionStorage.getItem('erox_sv')) {
+        sessionStorage.setItem('erox_sv', '1');
+        var mine = parseInt(localStorage.getItem('erox_you') || '0', 10) || 0;
+        localStorage.setItem('erox_you', String(mine + 1));
+        jobs.push(call('hit', 'total'), call('hit', dayKey(now)), call('hit', monthKey(now)));
+      }
+      if (!localStorage.getItem('erox_uv')) {
+        localStorage.setItem('erox_uv', '1');
+        jobs.push(call('hit', 'unique'));
+      }
+    } catch (e) { /* storage blocked: skip counting rather than inflate numbers */ }
+    hitsDone = Promise.all(jobs);
+  }
+
+  function yourVisits() {
+    try { return parseInt(localStorage.getItem('erox_you') || '0', 10) || 0; } catch (e) { return null; }
+  }
+
+  /* ---- chart ---- */
+  function points(r) {
+    var out = [], i, d, now = new Date();
+    if (r === 'year') {
+      for (i = 11; i >= 0; i--) {
+        d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        out.push({ d: d, key: monthKey(d) });
+      }
+    } else {
+      var n = r === 'week' ? 7 : 30;
+      for (i = n - 1; i >= 0; i--) {
+        d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        out.push({ d: d, key: dayKey(d) });
+      }
+    }
+    return out;
+  }
+
+  function fetchRange(r) {
+    var pts = points(r), idx = 0, failed = 0;
+    function batch() {
+      var part = pts.slice(idx, idx + 8);
+      if (!part.length) return Promise.resolve();
+      idx += 8;
+      return Promise.all(part.map(function (p) {
+        return call('get', p.key).then(function (v) { if (v == null) failed++; p.v = v == null ? 0 : v; });
+      })).then(batch);
+    }
+    return batch().then(function () { return { pts: pts, failed: failed }; });
+  }
+
+  function label(p, r, i, n) {
+    var loc = lang() === 'ar' ? 'ar-u-nu-latn' : 'en';
+    if (r === 'week') return p.d.toLocaleDateString(loc, { weekday: 'short' });
+    if (r === 'year') return p.d.toLocaleDateString(loc, { month: 'short' });
+    return (i % 5 === 0 || i === n - 1) ? String(p.d.getDate()) : '';
+  }
+
+  function draw(data) {
+    var NS_SVG = 'http://www.w3.org/2000/svg';
+    var pts = data.pts, n = pts.length, i, max = 1;
+    for (i = 0; i < n; i++) if (pts[i].v > max) max = pts[i].v;
+    var x0 = 8, x1 = 292, yTop = 16, yBase = 104;
+    var slot = (x1 - x0) / n, bw = Math.max(3, slot * 0.62);
+    var html = '<line class="base" x1="' + x0 + '" y1="' + yBase + '" x2="' + x1 + '" y2="' + yBase + '"/>';
+    for (i = 0; i < n; i++) {
+      var p = pts[i];
+      var h = p.v ? Math.max(2, (p.v / max) * (yBase - yTop)) : 0;
+      var x = x0 + slot * i + (slot - bw) / 2;
+      var tip = p.d.toLocaleDateString(lang() === 'ar' ? 'ar-u-nu-latn' : 'en', range === 'year' ? { month: 'long', year: 'numeric' } : { day: 'numeric', month: 'short' }) + ': ' + num(p.v);
+      if (h) html += '<rect class="bar" x="' + x.toFixed(1) + '" y="' + (yBase - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2"><title>' + tip + '</title></rect>';
+      if (n <= 12 && p.v) html += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (yBase - h - 3).toFixed(1) + '" text-anchor="middle">' + num(p.v) + '</text>';
+      var lb = label(p, range, i, n);
+      if (lb) html += '<text x="' + (x + bw / 2).toFixed(1) + '" y="120" text-anchor="middle">' + lb + '</text>';
+    }
+    html += '<text x="' + x0 + '" y="9">' + num(max) + '</text>';
+    chart.innerHTML = html;
+    var t = T[lang()];
+    if (data.failed) { note.hidden = false; note.textContent = t.stats_err; } else { note.hidden = true; }
+  }
+
+  function showChart() {
+    if (cache[range]) { draw(cache[range]); return; }
+    var want = range;
+    chart.innerHTML = '';
+    fetchRange(want).then(function (data) {
+      cache[want] = data;
+      if (want === range && !panel.hidden) draw(data);
+    });
+  }
+
+  /* ---- totals ---- */
+  function showTotals() {
+    var you = document.getElementById('stYou');
+    you.textContent = num(yourVisits());
+    if (totals && Date.now() - loadedAt < 60000) {
+      document.getElementById('stUnique').textContent = num(totals.u);
+      document.getElementById('stTotal').textContent = num(totals.t);
+      return;
+    }
+    document.getElementById('stUnique').textContent = '\u2026';
+    document.getElementById('stTotal').textContent = '\u2026';
+    hitsDone.then(function () {
+      return Promise.all([call('get', 'unique'), call('get', 'total')]);
+    }).then(function (r) {
+      totals = { u: r[0], t: r[1] };
+      loadedAt = Date.now();
+      document.getElementById('stUnique').textContent = num(r[0]);
+      document.getElementById('stTotal').textContent = num(r[1]);
+    });
+  }
+
+  /* ---- open / close ---- */
+  function setOpen(open) {
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) { cache = {}; showTotals(); hitsDone.then(showChart); }
+  }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(panel.hidden); });
+  panel.addEventListener('click', function (e) { e.stopPropagation(); });
+  document.addEventListener('click', function () { if (!panel.hidden) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { setOpen(false); btn.focus(); } });
+
+  var tabs = panel.querySelectorAll('.stat-tab');
+  for (var k = 0; k < tabs.length; k++) {
+    tabs[k].addEventListener('click', function () {
+      range = this.getAttribute('data-range');
+      for (var j = 0; j < tabs.length; j++) tabs[j].setAttribute('aria-pressed', tabs[j] === this ? 'true' : 'false');
+      showChart();
+    });
+  }
+
+  window.renderStats = function () {
+    var t = T[lang()];
+    if (t && t.stats_aria) btn.setAttribute('aria-label', t.stats_aria);
+    if (!panel.hidden && cache[range]) draw(cache[range]);
+  };
+
+  window.renderStats();
+  if (document.readyState === 'complete') setTimeout(record, 600);
+  else window.addEventListener('load', function () { setTimeout(record, 600); });
 })();
 
 /* ==========================================================================
