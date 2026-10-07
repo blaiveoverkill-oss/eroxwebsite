@@ -48,8 +48,6 @@
     var d = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.setAttribute('data-theme', d ? 'dark' : 'light');
     if (localStorage.getItem('fluid') === 'off') document.documentElement.classList.add('fluid-off');
-    var ac = localStorage.getItem('accent');
-    if (ac && /^(blue|green|rose|orange)$/.test(ac)) document.documentElement.setAttribute('data-accent', ac);
     var sl = localStorage.getItem('lang');
     var l = sl ? (sl === 'ar' ? 'ar' : 'en') : (/^ar\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'ar' : 'en');
     document.documentElement.setAttribute('lang', l);
@@ -79,15 +77,6 @@
   --glass: rgba(15, 13, 23, 0.5);
   --panel: rgba(22, 19, 34, 0.94);
 }
-[data-accent="blue"]   { --accent: #2563eb; --accent-soft: rgba(37, 99, 235, 0.08);  --accent-glow: rgba(37, 99, 235, 0.22); }
-[data-accent="green"]  { --accent: #059669; --accent-soft: rgba(5, 150, 105, 0.08);  --accent-glow: rgba(5, 150, 105, 0.22); }
-[data-accent="rose"]   { --accent: #e11d48; --accent-soft: rgba(225, 29, 72, 0.08);  --accent-glow: rgba(225, 29, 72, 0.22); }
-[data-accent="orange"] { --accent: #ea580c; --accent-soft: rgba(234, 88, 12, 0.08);  --accent-glow: rgba(234, 88, 12, 0.22); }
-[data-theme="dark"][data-accent="blue"]   { --accent: #8ab4ff; --accent-soft: rgba(138, 180, 255, 0.1); --accent-glow: rgba(37, 99, 235, 0.4); }
-[data-theme="dark"][data-accent="green"]  { --accent: #6ee7b7; --accent-soft: rgba(110, 231, 183, 0.1); --accent-glow: rgba(5, 150, 105, 0.4); }
-[data-theme="dark"][data-accent="rose"]   { --accent: #fda4af; --accent-soft: rgba(253, 164, 175, 0.1); --accent-glow: rgba(225, 29, 72, 0.4); }
-[data-theme="dark"][data-accent="orange"] { --accent: #fdba74; --accent-soft: rgba(253, 186, 116, 0.1); --accent-glow: rgba(234, 88, 12, 0.4); }
-[data-theme="dark"][data-accent] #toast { background: var(--accent); }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -348,7 +337,7 @@ html[dir="rtl"] .url { text-align: right; }
     max-width: 1040px;
     display: grid;
     grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
-    grid-template-areas: "top top" "intro links" ". videos" ". playlists" ". steam" ". chat" ". goal" ". foot";
+    grid-template-areas: "top top" "intro links" ". videos" ". playlists" ". steam" ". chat" ". foot";
     column-gap: 88px;
     align-items: start;
   }
@@ -356,7 +345,7 @@ html[dir="rtl"] .url { text-align: right; }
 
   .intro {
     grid-area: intro;
-    grid-row: 2 / 9;
+    grid-row: 2 / 8;
     position: sticky;
     top: 56px;
     margin-bottom: 0;
@@ -369,7 +358,6 @@ html[dir="rtl"] .url { text-align: right; }
   .playlists { grid-area: playlists; }
   .steam { grid-area: steam; grid-column: 2; }
   .chat { grid-area: chat; grid-column: 2; }
-  .goal { grid-area: goal; grid-column: 2; }
   .footer { grid-area: foot; grid-column: 2; margin-top: 64px; flex-direction: row; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--line); }
   .avatar-wrap { width: 112px; height: 112px; }
   .name { font-size: 2.6rem; }
@@ -733,29 +721,6 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
     </div>
 
     <div class="controls">
-      <div class="accent-wrap">
-        <button class="icon-btn" id="accentToggle" type="button"
-                aria-haspopup="true" aria-expanded="false" aria-controls="accentPanel" aria-label="Accent color">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.4-.7-.4-1.1 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5c0-4-4-7.3-9-7.3Z" />
-            <circle cx="7.5" cy="11.5" r="1" fill="currentColor" />
-            <circle cx="10.5" cy="7.5" r="1" fill="currentColor" />
-            <circle cx="15" cy="8" r="1" fill="currentColor" />
-          </svg>
-        </button>
-        <div class="accent-panel" id="accentPanel" hidden>
-          <p class="accent-title" id="accentTitle" data-i18n="acc_title">Accent color</p>
-          <div class="swatches">
-            <button class="swatch" type="button" data-accent="purple" style="background-color:#7c3aed" aria-pressed="true"></button>
-            <button class="swatch" type="button" data-accent="blue" style="background-color:#2563eb" aria-pressed="false"></button>
-            <button class="swatch" type="button" data-accent="green" style="background-color:#059669" aria-pressed="false"></button>
-            <button class="swatch" type="button" data-accent="rose" style="background-color:#e11d48" aria-pressed="false"></button>
-            <button class="swatch" type="button" data-accent="orange" style="background-color:#ea580c" aria-pressed="false"></button>
-          </div>
-        </div>
-      </div>
-
       <button class="icon-btn fluid-btn" id="fluidToggle" type="button"
               aria-label="Animated background" aria-pressed="true" onclick="doFluid()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -1068,22 +1033,6 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
     </div>
   </section>
 
-  <section class="goal" id="goal">
-    <div class="goal-card" id="goalBox" hidden>
-      <div class="goal-head">
-        <h2 class="goal-title" data-i18n="goal_title">Subscriber goal</h2>
-        <span class="goal-num"><span id="goalNum"></span><span class="goal-check" id="goalCheck" hidden aria-hidden="true">&#10003;</span></span>
-      </div>
-      <div class="goal-bar" id="goalBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="goalFill"></i></div>
-      <p class="goal-foot" id="goalFoot"></p>
-    </div>
-    <div class="share-row">
-      <button class="btn" id="shareBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg><span data-i18n="share_btn">Share this site</span></button>
-      <button class="btn" id="installBtn" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4M5 21h14" /></svg><span data-i18n="install_btn">Install app</span></button>
-    </div>
-    <p class="install-hint" id="installHint" hidden data-i18n="install_ios">On iPhone: tap Share, then &ldquo;Add to Home Screen&rdquo;.</p>
-  </section>
-
   <footer class="footer">
     <div class="socials">
       <a href="https://m.youtube.com/channel/UCoDs7EzXlKTj_py9_Glq9ZQ/videos" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-yt"/></svg></a>
@@ -1128,8 +1077,6 @@ body.has-mini { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
    ========================================================================== */
 var WORKER_URL = '';     /* your Cloudflare Worker URL -> LIVE badges + most reliable video feed */
 var STATS_NS = location.hostname || 'erox-site';   /* counter namespace for the visit stats (free abacus.jasoncameron.dev counter) */
-var SUB_COUNT = null;   /* optional: type your subscriber count here (e.g. 640) if youtube.json isn't set up yet */
-var SUB_GOAL = 1000;   /* subscriber goal for the progress bar at the bottom — change it once you reach it */
 var GOATCOUNTER = '';    /* your GoatCounter code (the part before .goatcounter.com) -> link-click stats */
 
 var T = {
@@ -1189,18 +1136,6 @@ var T = {
     steam_step3: "Accept the family invite, then pick a game from the shared library.",
     steam_cta: "Add me on Steam",
     steam_cta2: "Ask on Discord",
-    share_btn: "Share this site",
-    install_btn: "Install app",
-    install_ios: "On iPhone: tap Share, then \u201cAdd to Home Screen\u201d.",
-    goal_title: "Subscriber goal",
-    goal_left: "to go",
-    goal_done: "Goal reached \u2014 thank you!",
-    acc_title: "Accent color",
-    acc_purple: "Purple",
-    acc_blue: "Blue",
-    acc_green: "Green",
-    acc_rose: "Rose",
-    acc_orange: "Orange",
     stats_title: "Site visits",
     stats_unique: "Unique visits",
     stats_you: "Your visits",
@@ -1291,18 +1226,6 @@ var T = {
     steam_step3: "اقبل دعوة العائلة ثم اختر لعبة من المكتبة المشتركة.",
     steam_cta: "أضفني على ستيم",
     steam_cta2: "اسأل على ديسكورد",
-    share_btn: "شارك الموقع",
-    install_btn: "ثبّت التطبيق",
-    install_ios: "على الآيفون: اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية».",
-    goal_title: "هدف المشتركين",
-    goal_left: "متبقي",
-    goal_done: "تم تحقيق الهدف — شكراً لكم!",
-    acc_title: "لون التمييز",
-    acc_purple: "بنفسجي",
-    acc_blue: "أزرق",
-    acc_green: "أخضر",
-    acc_rose: "وردي",
-    acc_orange: "برتقالي",
     stats_title: "زيارات الموقع",
     stats_unique: "الزوار الفريدون",
     stats_you: "زياراتك",
@@ -1375,8 +1298,6 @@ function applyLang(l) {
   if (window.renderLive) window.renderLive();
   if (window.renderTop) window.renderTop();
   if (window.renderStats) window.renderStats();
-  if (window.renderGoal) window.renderGoal();
-  if (window.renderAccent) window.renderAccent();
 }
 
 function applyThemeColor() {
@@ -2543,6 +2464,7 @@ document.addEventListener('toggle', function (e) {
   }
 
   function draw(data) {
+    var NS_SVG = 'http://www.w3.org/2000/svg';
     var pts = data.pts, n = pts.length, i, max = 1;
     for (i = 0; i < n; i++) if (pts[i].v > max) max = pts[i].v;
     var x0 = 8, x1 = 292, yTop = 16, yBase = 104;
@@ -2624,145 +2546,6 @@ document.addEventListener('toggle', function (e) {
   window.renderStats();
   if (document.readyState === 'complete') setTimeout(record, 600);
   else window.addEventListener('load', function () { setTimeout(record, 600); });
-})();
-
-/* ==========================================================================
-   Accent color picker — remembered in localStorage, applied via data-accent
-   ========================================================================== */
-(function () {
-  var btn = document.getElementById('accentToggle');
-  var panel = document.getElementById('accentPanel');
-  if (!btn || !panel) return;
-  var sw = panel.querySelectorAll('.swatch');
-
-  function current() { return root.getAttribute('data-accent') || 'purple'; }
-  function mark() {
-    var c = current();
-    for (var i = 0; i < sw.length; i++) sw[i].setAttribute('aria-pressed', sw[i].getAttribute('data-accent') === c ? 'true' : 'false');
-  }
-  function apply(a) {
-    if (a === 'purple') root.removeAttribute('data-accent'); else root.setAttribute('data-accent', a);
-    store('accent', a);
-    mark();
-  }
-  function setOpen(open) {
-    panel.hidden = !open;
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  }
-
-  for (var i = 0; i < sw.length; i++) {
-    sw[i].addEventListener('click', function () { apply(this.getAttribute('data-accent')); });
-  }
-  btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(panel.hidden); });
-  panel.addEventListener('click', function (e) { e.stopPropagation(); });
-  document.addEventListener('click', function () { if (!panel.hidden) setOpen(false); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { setOpen(false); btn.focus(); } });
-
-  window.renderAccent = function () {
-    var t = T[currentLang()];
-    btn.setAttribute('aria-label', t.acc_title);
-    for (var j = 0; j < sw.length; j++) sw[j].setAttribute('aria-label', t['acc_' + sw[j].getAttribute('data-accent')] || '');
-  };
-  window.renderAccent();
-  mark();
-})();
-
-/* ==========================================================================
-   Share + install app
-   ========================================================================== */
-(function () {
-  var shareBtn = document.getElementById('shareBtn');
-  var installBtn = document.getElementById('installBtn');
-  var hint = document.getElementById('installHint');
-
-  if (shareBtn) {
-    shareBtn.addEventListener('click', function () {
-      var url = location.href.split('#')[0];
-      if (navigator.share) {
-        navigator.share({ title: document.title, text: document.title, url: url }).catch(function () {});
-        return;
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(function () { toast('toastCopied'); }).catch(function () { window.prompt('', url); });
-      } else {
-        window.prompt('', url);
-      }
-    });
-  }
-
-  if (!installBtn) return;
-  var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-  if (standalone) return;
-  var deferred = null;
-
-  window.addEventListener('beforeinstallprompt', function (e) {
-    e.preventDefault();
-    deferred = e;
-    installBtn.hidden = false;
-  });
-  window.addEventListener('appinstalled', function () {
-    deferred = null;
-    installBtn.hidden = true;
-    if (hint) hint.hidden = true;
-  });
-
-  /* iPhone / iPad Safari has no install event: show a how-to instead */
-  var ua = navigator.userAgent || '';
-  var ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (ios) installBtn.hidden = false;
-
-  installBtn.addEventListener('click', function () {
-    if (deferred) {
-      deferred.prompt();
-      deferred.userChoice.then(function () { deferred = null; installBtn.hidden = true; });
-    } else if (hint) {
-      hint.hidden = !hint.hidden;
-    }
-  });
-})();
-
-/* ==========================================================================
-   Subscriber goal — reads youtube.json (refreshed by the GitHub Action)
-   Bar turns green with a check mark once the goal is reached.
-   ========================================================================== */
-(function () {
-  var box = document.getElementById('goalBox');
-  if (!box) return;
-  var data = null;
-
-  function num(v) { return Number(v || 0).toLocaleString('en'); }
-
-  function render() {
-    if (!data || typeof data.subscribers !== 'number') return;
-    var t = T[currentLang()];
-    var goal = Math.max(1, Number(SUB_GOAL) || 1000);
-    var n = data.subscribers;
-    var done = n >= goal;
-    var pct = Math.min(100, (n / goal) * 100);
-    box.classList.toggle('done', done);
-    document.getElementById('goalNum').textContent = num(n) + ' / ' + num(goal);
-    document.getElementById('goalCheck').hidden = !done;
-    document.getElementById('goalFoot').textContent = done ? t.goal_done : num(goal - n) + ' ' + t.goal_left;
-    var bar = document.getElementById('goalBar');
-    bar.setAttribute('aria-valuenow', String(Math.round(pct)));
-    var fill = document.getElementById('goalFill');
-    var wasHidden = box.hidden;
-    box.hidden = false;
-    if (wasHidden) {
-      fill.style.width = '0%';
-      requestAnimationFrame(function () { requestAnimationFrame(function () { fill.style.width = pct + '%'; }); });
-    } else {
-      fill.style.width = pct + '%';
-    }
-  }
-
-  window.renderGoal = render;
-  fetch('youtube.json', { cache: 'no-cache' })
-    .then(function (r) { if (!r.ok) throw new Error('no youtube.json'); return r.json(); })
-    .then(function (j) { data = j; render(); })
-    .catch(function () {
-      if (typeof SUB_COUNT === 'number') { data = { subscribers: SUB_COUNT }; render(); }
-    });
 })();
 
 /* ==========================================================================
